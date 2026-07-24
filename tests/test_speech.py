@@ -2,11 +2,12 @@
 
 import pytest
 from jarvis.pipelines.speech import SpeechPipeline
+from jarvis.core.config import config
 
 
 @pytest.mark.asyncio
 async def test_load_model_returns_false_without_api_key(monkeypatch):
-    monkeypatch.delenv("GROQ_API_KEY", raising=False)
+    monkeypatch.setattr(config, "groq_api_key", "")
     pipeline = SpeechPipeline()
     result = await pipeline.load_model()
     assert result is False
@@ -14,7 +15,7 @@ async def test_load_model_returns_false_without_api_key(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_load_model_returns_false_without_capture(monkeypatch):
-    monkeypatch.setenv("GROQ_API_KEY", "test-key")
+    monkeypatch.setattr(config, "groq_api_key", "test-key")
     monkeypatch.setattr("jarvis.pipelines.speech._find_audio_capture", lambda: None)
     pipeline = SpeechPipeline()
     result = await pipeline.load_model()

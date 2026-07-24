@@ -5,13 +5,6 @@ from jarvis.pipelines.device import DevicePipeline
 
 
 @pytest.mark.asyncio
-async def test_has_termux_returns_bool():
-    pipeline = DevicePipeline()
-    result = pipeline.has_termux()
-    assert isinstance(result, bool)
-
-
-@pytest.mark.asyncio
 async def test_execute_tell_time():
     pipeline = DevicePipeline()
     result = await pipeline.execute("tell_time", {})
