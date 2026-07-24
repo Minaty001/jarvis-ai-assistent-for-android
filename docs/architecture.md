@@ -13,7 +13,7 @@ The assistant's architecture mirrors the human brain. Each capability is an inde
 | 1 | Prefrontal Cortex (PFC) | Engine | `core/engine.py` | Executive orchestration, intent routing | Amber `#ffaa00` |
 | 2 | Auditory Cortex | Speech | `pipelines/speech.py` | Groq Whisper STT, wake word detection | Cyan `#00f0ff` |
 | 3 | Wernicke's Area | Chat | `pipelines/chat.py` | Groq LLM, reasoning, response generation | Green `#00ff88` |
-| 4 | Broca's Area | Voice | `pipelines/voice.py` | Piper TTS, speech output | Purple `#8844ff` |
+| 4 | Broca's Area | Voice | `pipelines/voice.py` | Piper TTS / edge-tts / Android TTS, speech output | Purple `#8844ff` |
 | 5 | Motor Cortex | Device | `pipelines/device.py` | Termux:API Android device control | Red `#ff3366` |
 | 6 | Hippocampus | Memory | `pipelines/memory.py` | SQLite conversation history and facts | Blue `#0066ff` |
 
@@ -41,7 +41,7 @@ User: "Hey Jarvis, open the camera"
 | Runtime | Python 3.14 (Termux on aarch64) | Interpreter |
 | STT | Groq Whisper API (`whisper-large-v3`) | Speech-to-text |
 | LLM | Groq API (`llama-3.1-8b-instant`) | Language model |
-| TTS | Piper (local) / termux-tts-speak | Speech synthesis |
+| TTS | Piper (local) / edge-tts (cloud) / termux-tts-speak | Speech synthesis |
 | Device API | termux-api subprocess calls | Android hardware control |
 | Database | SQLite via aiosqlite | Persistence |
 | HTTP | httpx (async) | LLM + STT API client |
@@ -125,7 +125,7 @@ The intent classifier (`core/intent.py`) is a rule-based regex matcher. It runs 
 | Groq API key missing | STT + LLM return informative error; text-only mode |
 | Microphone unavailable | Speech pipeline logs warning; text-only mode |
 | Groq API down | Chat returns `None`; Engine says "I'm having trouble thinking" |
-| Piper binary missing | Voice falls back to termux-tts-speak |
+| Piper binary missing | Voice falls back to edge-tts, then termux-tts-speak |
 | Termux:API unavailable | Device returns descriptive error string per action |
 | SQLite write failure | Memory logs error; conversation continues without persistence |
 

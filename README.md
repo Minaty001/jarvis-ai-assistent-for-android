@@ -13,7 +13,7 @@ The assistant is built as 6 independent pipelines, each mapped to a brain cortic
 | Prefrontal Cortex (PFC) | Engine | Executive orchestration, intent routing |
 | Auditory Cortex | Speech | Groq Whisper STT, wake word detection |
 | Wernicke's Area | Chat | Groq LLM, reasoning |
-| Broca's Area | Voice | Piper TTS, speech output |
+| Broca's Area | Voice | Piper TTS / edge-tts / Android TTS, speech output |
 | Motor Cortex | Device | Termux:API device control |
 | Hippocampus | Memory | SQLite storage |
 
@@ -24,7 +24,7 @@ The assistant is built as 6 independent pipelines, each mapped to a brain cortic
 - Voice interaction with wake word ("Jarvis", "Boss", "Computer")
 - Speech-to-text via **Groq Whisper API** (`whisper-large-v3`)
 - LLM reasoning via Groq API (`llama-3.1-8b-instant`)
-- Text-to-speech via Piper (local) or Android TTS
+- Text-to-speech via Piper TTS (local), edge-tts (free cloud), or Android TTS fallback
 - Android device control (apps, settings, flashlight, wifi, bluetooth, etc.)
 - Persistent memory with conversation history and user facts
 - Brain visualization UI (terminal TUI + web UI)
@@ -108,7 +108,7 @@ src/jarvis/
 ├── pipelines/
 │   ├── speech.py        # Groq Whisper STT + wake word
 │   ├── chat.py          # Groq LLM client
-│   ├── voice.py         # Piper TTS
+│   ├── voice.py         # Piper / edge-tts / Android TTS
 │   ├── device.py        # Termux:API device control
 │   └── memory.py        # SQLite storage
 ├── ui/
@@ -125,7 +125,7 @@ The assistant continues working even when components are unavailable:
 
 - **No Groq API key:** STT and LLM unavailable; falls back to text-only input
 - **No microphone:** Text-only mode
-- **No Piper binary:** Falls back to Android TTS (termux-tts-speak)
+- **No Piper binary:** Falls back to edge-tts (free cloud TTS), then Android TTS
 - **No Termux:API:** Device commands return descriptive errors
 - **No SQLite:** Conversation continues without persistence
 

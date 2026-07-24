@@ -32,7 +32,7 @@ Existing Android assistants are closed, cloud-dependent, or not extensible. User
 - Wake-word activation ("Jarvis", "Boss", "Computer")
 - Speech-to-text via **Groq Whisper API** (`whisper-large-v3`)
 - LLM-powered chat and reasoning via Groq API (`llama-3.1-8b-instant`)
-- Text-to-speech via Piper TTS (local) or Android TTS fallback
+- Text-to-speech via Piper TTS (local), edge-tts (free cloud), or Android TTS fallback
 - Text-only fallback when microphone / STT is unavailable
 
 ### 4.2 Android Device Control
@@ -58,7 +58,7 @@ Existing Android assistants are closed, cloud-dependent, or not extensible. User
 ### 4.5 Graceful Degradation
 No single component failure crashes the assistant:
 - No Groq key → text-only input with informative error
-- No Piper → Android TTS fallback
+- No Piper → edge-tts (free cloud TTS), then Android TTS fallback
 - No Termux:API → descriptive error per action
 - No SQLite → conversation continues without persistence
 - No microphone → text-only mode
