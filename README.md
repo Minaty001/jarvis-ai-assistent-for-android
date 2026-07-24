@@ -1,5 +1,7 @@
 # Jarvis AI Assistant for Android
 
+> Crafted by [Minaty001](https://github.com/Minaty001) — made for him, but free for everyone to use.
+
 A modular, voice-controlled AI assistant for Android Termux with a brain-inspired pipeline architecture and neural visualization UI.
 
 ## Architecture
@@ -124,10 +126,15 @@ The assistant continues working even when components are unavailable:
 - **No Termux:API:** Device commands return descriptive errors
 - **No SQLite:** Conversation continues without persistence
 
+## Documentation
+
+- [PRD](docs/PRD.md) — Project requirements and feature specification
+- [Architecture](docs/architecture.md) — App flow, tech stack, folder structure
+- [Memory Pipeline](docs/memory.md) — Database schema and API reference
+
 ## Running Tests
 
 ```bash
-cd /root/jarvis-ai-assistent-for-android
 PYTHONPATH=src python -m pytest tests/ -v
 ```
 
