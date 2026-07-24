@@ -40,11 +40,6 @@ class MemoryPipeline:
                 value TEXT NOT NULL,
                 timestamp TEXT NOT NULL DEFAULT (datetime('now'))
             );
-            CREATE TABLE IF NOT EXISTS settings (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                key TEXT NOT NULL UNIQUE,
-                value TEXT NOT NULL
-            );
             CREATE TABLE IF NOT EXISTS notes (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 title TEXT NOT NULL,

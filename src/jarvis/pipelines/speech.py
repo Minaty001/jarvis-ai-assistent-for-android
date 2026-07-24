@@ -1,15 +1,18 @@
-"""Speech pipeline — Vosk STT and wake word detection (Auditory Cortex).
+"""Speech pipeline — Groq Whisper STT and wake word detection (Auditory Cortex).
 
-Captures microphone audio, performs speech-to-text via Vosk,
-and detects wake words for hands-free activation.
+Captures microphone audio via available methods (sounddevice, termux-microphone-record),
+sends to Groq Whisper API for transcription, and detects wake words.
+Gracefully degrades when no audio capture or API key is available.
+Crafted by Minaty001.
 """
 
 from __future__ import annotations
 
 import asyncio
-import json
-import urllib.request
-import zipfile
+import os
+import subprocess
+import tempfile
+import wave
 from pathlib import Path
 from typing import Any, Callable, Optional
 
@@ -17,166 +20,258 @@ from jarvis.core.config import config as app_config
 from jarvis.utils.logging import log
 
 try:
-    import numpy as np
     import sounddevice as sd
+    import numpy as np
 except (ImportError, OSError):
-    np = None
     sd = None
+    np = None
 
-try:
-    from vosk import Model as VoskModel, KaldiRecognizer
-except ImportError:
-    VoskModel = None
-    KaldiRecognizer = None
 
-VOSK_MODEL_URL = "https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip"
-VOSK_MODEL_DIR_NAME = "vosk-model-small-en-us-0.15"
+# Wake word detection runs on transcribed text, so we check if any
+# configured wake word appears in the Whisper output.
+WAKE_CHECK_INTERVAL = 2.5  # seconds of audio to capture per wake-word check
+LISTEN_DURATION = 6.0  # seconds of audio to capture for a command
+
+
+def _find_audio_capture() -> str | None:
+    """Probe available audio capture methods.
+
+    Returns a method name string or None if none found.
+    """
+    # 1. sounddevice (PortAudio) — desktop Linux, macOS, Windows
+    if sd is not None:
+        try:
+            devices = sd.query_devices()
+            if any(d.get("max_input_channels", 0) > 0 for d in devices):
+                return "sounddevice"
+        except Exception:
+            pass
+
+    for probe_name, probe_args in [
+        ("termux-mic", ["termux-microphone-record", "--help"]),
+        ("arecord", ["arecord", "--version"]),
+    ]:
+        try:
+            proc = subprocess.run(probe_args, capture_output=True, timeout=3)
+            if proc.returncode in (0, 1):
+                return probe_name
+        except Exception:
+            pass
+
+    return None
+
+
+def _wav_bytes(raw_data: bytes, sample_rate: int, nchannels: int = 1, sampwidth: int = 2) -> bytes:
+    """Wrap raw PCM bytes in WAV container, return WAV bytes."""
+    buf = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
+    try:
+        with wave.open(buf, "wb") as wf:
+            wf.setnchannels(nchannels)
+            wf.setsampwidth(sampwidth)
+            wf.setframerate(sample_rate)
+            wf.writeframes(raw_data)
+        with open(buf.name, "rb") as f:
+            return f.read()
+    finally:
+        try:
+            os.unlink(buf.name)
+        except Exception:
+            pass
+
+
+def _record_sounddevice(duration: float, sample_rate: int = 16000) -> bytes | None:
+    """Record audio using sounddevice, return WAV bytes."""
+    if sd is None or np is None:
+        return None
+    try:
+        frames = int(duration * sample_rate)
+        recording = sd.rec(frames, samplerate=sample_rate, channels=1, dtype="int16")
+        sd.wait()
+        return _wav_bytes(recording.tobytes(), sample_rate)
+    except Exception as e:
+        log.debug(f"sounddevice record failed: {e}")
+        return None
+
+
+def _record_termux_mic(duration: float, sample_rate: int = 16000) -> bytes | None:
+    """Record audio using termux-microphone-record."""
+    tmp = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
+    tmp.close()
+    try:
+        proc = subprocess.run(
+            ["termux-microphone-record", "-f", tmp.name, "-d", str(int(duration))],
+            capture_output=True, timeout=int(duration) + 5,
+        )
+        if proc.returncode != 0:
+            return None
+        with open(tmp.name, "rb") as f:
+            return f.read()
+    except Exception as e:
+        log.debug(f"termux-mic record failed: {e}")
+        return None
+    finally:
+        try:
+            os.unlink(tmp.name)
+        except Exception:
+            pass
+
+
+def _record_arecord(duration: float, sample_rate: int = 16000) -> bytes | None:
+    """Record audio using arecord (ALSA)."""
+    frames = int(duration * sample_rate)
+    try:
+        proc = subprocess.run(
+            ["arecord", "-t", "raw", "-f", "S16_LE", "-r", str(sample_rate),
+             "-c", "1", "-d", str(int(duration))],
+            capture_output=True, timeout=int(duration) + 5,
+        )
+        if proc.returncode != 0:
+            return None
+        return _wav_bytes(proc.stdout, sample_rate)
+    except Exception as e:
+        log.debug(f"arecord failed: {e}")
+        return None
+
+
+_RECORDERS = {
+    "sounddevice": _record_sounddevice,
+    "termux-mic": _record_termux_mic,
+    "arecord": _record_arecord,
+}
+
+
+def _transcribe(audio_bytes: bytes, api_key: str) -> str | None:
+    """Send WAV audio bytes to Groq Whisper API and return transcribed text."""
+    try:
+        import httpx
+        with httpx.Client(timeout=30) as client:
+            resp = client.post(
+                "https://api.groq.com/openai/v1/audio/transcriptions",
+                headers={"Authorization": f"Bearer {api_key}"},
+                files={"file": ("audio.wav", audio_bytes, "audio/wav")},
+                data={"model": "whisper-large-v3", "language": "en"},
+            )
+            if resp.status_code != 200:
+                log.warning(f"Whisper API error {resp.status_code}: {resp.text[:200]}")
+                return None
+            data = resp.json()
+            return data.get("text", "").strip().lower()
+    except Exception as e:
+        log.debug(f"Whisper transcription failed: {e}")
+        return None
 
 
 class SpeechPipeline:
-    """Async speech recognition with wake word detection."""
+    """Async speech recognition with wake word detection via Groq Whisper API."""
 
     def __init__(self) -> None:
-        self.model_path = Path(app_config.models_dir) / VOSK_MODEL_DIR_NAME
-        self.model: Any = None
+        self.model: Any = None  # Kept for engine compatibility checks
         self.recognizer: Any = None
         self.stt_queue: asyncio.Queue[str] = asyncio.Queue()
         self.wake_event = asyncio.Event()
         self._stream: Any = None
         self._running = False
         self._wake_words = app_config.wake_words
+        self._capture_method: str | None = None
+        self._api_key: str = ""
         self._on_utterance: Optional[Callable] = None
 
     def set_on_speech_detected(self, callback: Callable) -> None:
-        """Register callback for speech detection during TTS (interrupt)."""
+        """Register callback for speech detection (used for TTS interrupt)."""
         self._on_utterance = callback
 
     async def load_model(self) -> bool:
-        """Load Vosk model. Returns True if successful."""
-        if VoskModel is None:
-            log.warning("Vosk not installed. STT unavailable.")
+        """Check availability of Groq API key and audio capture.
+
+        Returns True if STT is usable (both API key and audio capture available).
+        """
+        self._api_key = app_config.groq_api_key or os.getenv("GROQ_API_KEY", "")
+        if not self._api_key:
+            log.warning("GROQ_API_KEY not set. STT unavailable.")
             return False
 
-        if not self.model_path.exists():
-            log.info("Vosk model not found. Downloading...")
-            return await self._download_model()
-
-        try:
-            self.model = VoskModel(str(self.model_path))
-            log.info("Vosk model loaded successfully.")
-            return True
-        except Exception as e:
-            log.error(f"Failed to load Vosk model: {e}")
+        # Probe audio capture methods in a thread to avoid blocking
+        loop = asyncio.get_running_loop()
+        method = await loop.run_in_executor(None, _find_audio_capture)
+        if method is None:
+            log.warning("No microphone capture method found. STT unavailable.")
             return False
 
-    async def _download_model(self) -> bool:
-        """Download and extract Vosk model."""
-        zip_path = Path(app_config.models_dir) / f"{VOSK_MODEL_DIR_NAME}.zip"
-        try:
-            def _dl():
-                urllib.request.urlretrieve(VOSK_MODEL_URL, zip_path)
-            await asyncio.get_running_loop().run_in_executor(None, _dl)
-            log.info("Downloaded Vosk model. Extracting...")
-
-            def _extract():
-                with zipfile.ZipFile(zip_path, "r") as zf:
-                    zf.extractall(app_config.models_dir)
-                zip_path.unlink()
-            await asyncio.get_running_loop().run_in_executor(None, _extract)
-            log.info("Vosk model extracted.")
-            return await self.load_model()
-        except Exception as e:
-            log.error(f"Failed to download Vosk model: {e}")
-            return False
-
-    def _audio_callback(self, indata, frames, time_info, status) -> None:
-        """sounddevice callback — feeds audio to Vosk recognizer."""
-        if status:
-            log.debug(f"Audio status: {status}")
-        if self.recognizer is None:
-            return
-
-        data = indata.copy()
-        if data.dtype != np.int16:
-            data = (data * 32767).astype(np.int16)
-        audio_bytes = data.tobytes()
-
-        if self.recognizer.AcceptWaveform(audio_bytes):
-            result = json.loads(self.recognizer.Result())
-            text = result.get("text", "").strip().lower()
-            if text:
-                log.debug(f"STT final: {text}")
-                asyncio.run_coroutine_threadsafe(
-                    self.stt_queue.put(text), asyncio.get_running_loop()
-                )
-                if self._on_utterance:
-                    asyncio.run_coroutine_threadsafe(
-                        self._on_utterance(text), asyncio.get_running_loop()
-                    )
-        else:
-            partial = json.loads(self.recognizer.PartialResult())
-            partial_text = partial.get("partial", "").strip().lower()
-            if partial_text and any(w in partial_text for w in self._wake_words):
-                if not self.wake_event.is_set():
-                    log.info(f"Wake word detected in: '{partial_text}'")
-                    asyncio.run_coroutine_threadsafe(
-                        self.wake_event.set(), asyncio.get_running_loop()
-                    )
+        self._capture_method = method
+        log.info(f"STT ready — using '{method}' capture + Groq Whisper API.")
+        self.model = True  # Signal to engine that speech is available
+        return True
 
     async def start(self) -> None:
-        """Start microphone capture and recognition."""
-        if self.model is None or sd is None:
-            log.warning("STT not available (model or sounddevice missing).")
+        """Start listening (capture method selected during load_model)."""
+        if self._capture_method is None:
+            log.warning("STT not available (no audio capture).")
             return
+        self._running = True
+        log.info(f"Microphone ready ({self._capture_method}). Listening...")
 
-        try:
-            self.recognizer = KaldiRecognizer(self.model, app_config.sample_rate)
-            self.recognizer.SetWords(False)
-            self._running = True
+    def _detect_wake_word(self, text: str) -> bool:
+        """Check if any configured wake word appears in the transcribed text."""
+        for ww in self._wake_words:
+            if ww in text:
+                return True
+        return False
 
-            def _open_stream():
-                self._stream = sd.InputStream(
-                    samplerate=app_config.sample_rate,
-                    channels=1,
-                    dtype="int16",
-                    callback=self._audio_callback,
-                    blocksize=8000,
-                )
-                self._stream.start()
+    async def _capture_and_transcribe(self, duration: float) -> str | None:
+        """Record audio and transcribe via Whisper. Returns lowercase text or None."""
+        recorder = _RECORDERS.get(self._capture_method)
+        if recorder is None:
+            return None
 
-            loop = asyncio.get_running_loop()
-            await loop.run_in_executor(None, _open_stream)
-            log.info("Microphone started. Listening...")
-        except Exception as e:
-            log.error(f"Failed to start microphone: {e}")
-            self._running = False
+        loop = asyncio.get_running_loop()
+        audio = await loop.run_in_executor(None, recorder, duration, app_config.sample_rate)
+        if audio is None:
+            return None
 
-    async def stop(self) -> None:
-        """Stop microphone capture."""
-        self._running = False
-        if self._stream:
-            try:
-                self._stream.stop()
-                self._stream.close()
-            except Exception:
-                pass
-            self._stream = None
+        text = await loop.run_in_executor(None, _transcribe, audio, self._api_key)
+        return text
 
     async def wait_for_wake(self) -> bool:
-        """Wait until wake word is detected. Returns True if triggered."""
+        """Loop: capture short audio chunks and check for wake word.
+
+        Returns True when a wake word is detected, False if cancelled.
+        """
         self.wake_event.clear()
-        try:
-            await asyncio.wait_for(self.wake_event.wait(), timeout=None)
-            return True
-        except asyncio.CancelledError:
-            return False
+        log.debug("Waiting for wake word...")
+
+        while self._running:
+            text = await self._capture_and_transcribe(WAKE_CHECK_INTERVAL)
+            if text and self._detect_wake_word(text):
+                log.info(f"Wake word detected — '{text}'")
+                self.wake_event.set()
+                return True
+            # Small yield so cancellation can be caught
+            await asyncio.sleep(0.1)
+
+        return False
 
     async def listen(self, timeout: float | None = None) -> Optional[str]:
-        """Wait for a spoken command with timeout. Returns text or None."""
-        try:
-            text = await asyncio.wait_for(
-                self.stt_queue.get(), timeout=timeout or app_config.listen_timeout
-            )
+        """Capture audio and return transcribed text.
+
+        Args:
+            timeout: Maximum seconds to wait for speech.
+                     Falls back to app_config.listen_timeout when None.
+
+        Returns:
+            Transcribed text string, or None on timeout/failure.
+        """
+        duration = timeout or app_config.listen_timeout
+        text = await self._capture_and_transcribe(duration)
+
+        if text:
+            log.debug(f"STT result: {text}")
+            if self._on_utterance:
+                asyncio.create_task(self._on_utterance(text))
             return text
-        except asyncio.TimeoutError:
-            return None
+
+        return None
+
+    async def stop(self) -> None:
+        """Stop listening."""
+        self._running = False
+        log.debug("Speech pipeline stopped.")

@@ -1,4 +1,4 @@
-"""CLI entry point for Jarvis AI Assistant."""
+"""CLI entry point for Jarvis AI Assistant. Crafted by Minaty001."""
 
 from __future__ import annotations
 

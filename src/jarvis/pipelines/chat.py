@@ -23,22 +23,6 @@ class ChatPipeline:
         self.timeout = app_config.groq_timeout
         self._client: Any = None
 
-    async def _ensure_client(self) -> None:
-        if self._client is not None:
-            return
-        try:
-            import httpx
-            self._client = httpx.AsyncClient(
-                timeout=self.timeout,
-                headers={
-                    "Authorization": f"Bearer {self.api_key}",
-                    "Content-Type": "application/json",
-                },
-            )
-        except ImportError:
-            log.warning("httpx not installed. Chat pipeline unavailable.")
-            self._client = None
-
     async def generate(self, messages: list[dict]) -> Optional[str]:
         """Send messages to Groq and return the response.
 
@@ -52,9 +36,19 @@ class ChatPipeline:
             log.error("GROQ_API_KEY not set.")
             return None
 
-        await self._ensure_client()
         if self._client is None:
-            return None
+            try:
+                import httpx
+                self._client = httpx.AsyncClient(
+                    timeout=self.timeout,
+                    headers={
+                        "Authorization": f"Bearer {self.api_key}",
+                        "Content-Type": "application/json",
+                    },
+                )
+            except ImportError:
+                log.warning("httpx not installed. Chat pipeline unavailable.")
+                return None
 
         payload = {
             "model": self.model,

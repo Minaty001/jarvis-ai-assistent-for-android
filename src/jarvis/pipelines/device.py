@@ -2,12 +2,14 @@
 
 Executes device actions via termux-api subprocess commands.
 Gracefully degrades when termux-api is not available.
+Crafted by Minaty001.
 """
 
 from __future__ import annotations
 
 import asyncio
 import subprocess
+import json
 from datetime import datetime
 from typing import Optional
 
@@ -18,21 +20,7 @@ class DevicePipeline:
     """Async wrapper around Termux-API and Android commands."""
 
     def __init__(self) -> None:
-        self._has_termux = self._check_termux()
-
-    def _check_termux(self) -> bool:
-        """Check if termux-battery-status is available."""
-        try:
-            proc = subprocess.run(
-                ["termux-battery-status"], capture_output=True, timeout=5
-            )
-            return proc.returncode == 0
-        except Exception:
-            return False
-
-    def has_termux(self) -> bool:
-        """Return whether Termux:API is available on this device."""
-        return self._has_termux
+        pass
 
     async def _run(self, *args: str, input_data: Optional[str] = None) -> str:
         """Run a subprocess asynchronously and return stdout."""
@@ -185,7 +173,6 @@ class DevicePipeline:
         if result.startswith("ERROR"):
             return "Battery status unavailable."
         try:
-            import json
             data = json.loads(result)
             pct = data.get("percentage", "?")
             plug = data.get("plugged", "?")

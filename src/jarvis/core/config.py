@@ -1,4 +1,4 @@
-"""Environment-based configuration loader."""
+"""Environment-based configuration loader. Crafted by Minaty001."""
 
 from __future__ import annotations
 

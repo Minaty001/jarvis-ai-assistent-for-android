@@ -177,21 +177,4 @@ class BrainRenderer:
             "total_synapses": state.total_synapses,
         }
 
-    @staticmethod
-    def build_svg(state: BrainState) -> str:
-        """Placeholder: generate inline SVG from brain state.
 
-        Full SVG generation requires the brain-architecture.svg template
-        with dynamic region coloring. Returns a minimal placeholder.
-        """
-        active_count = sum(1 for r in state.regions.values() if r.active)
-        html_parts = [
-            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500">',
-            '<rect width="400" height="500" fill="#0a0a0f"/>',
-            '<text x="200" y="30" text-anchor="middle" fill="#00f0ff" '
-            'font-family="monospace" font-size="12">JARVIS CORTEX</text>',
-            '<text x="200" y="50" text-anchor="middle" fill="#004466" '
-            'font-family="monospace" font-size="10">Active regions: {active_count}/6</text>',
-            '</svg>',
-        ]
-        return "\n".join(html_parts)

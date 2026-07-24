@@ -1,4 +1,5 @@
-"""Flask web UI serving the Jarvis assistant interface with live brain updates."""
+"""Flask web UI serving the Jarvis assistant interface with live brain updates.
+Crafted by Minaty001."""
 
 from __future__ import annotations
 
@@ -94,14 +95,6 @@ def brain_state() -> Response:
     return jsonify(data)
 
 
-@app.route("/api/brain-svg")
-def brain_svg() -> Response:
-    """Return current brain state as inline SVG."""
-    state = _build_state()
-    svg = BrainRenderer.build_svg(state)
-    return Response(svg, mimetype="image/svg+xml")
-
-
 @app.route("/api/stream")
 def stream() -> Response:
     """SSE stream of brain state updates."""
@@ -127,10 +120,7 @@ def handle_command() -> Response:
     if _engine_ref and hasattr(_engine_ref, 'process'):
         import asyncio
         try:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            response = loop.run_until_complete(_engine_ref.process(command))
-            loop.close()
+            response = asyncio.run(_engine_ref.process(command))
             _last_response = response
             return jsonify({"response": response})
         except Exception as e:
