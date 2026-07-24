@@ -78,6 +78,10 @@ class Engine:
             await self.shutdown()
             return "Shutting down. Goodbye!"
 
+        if intent == "who_created":
+            self.state = EngineState.IDLE
+            return "Minaty001 made me for him, but you can use me too!"
+
         # Check if device can handle it
         if intent not in ("general_chat", "what_is"):
             result = await self.device.execute(intent, params)

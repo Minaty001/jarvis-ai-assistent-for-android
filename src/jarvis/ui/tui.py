@@ -146,7 +146,7 @@ class TUI:
                     pass
 
             # Footer
-            footer = f"State: {self.engine.state.value if hasattr(self.engine, 'state') else 'N/A'} | Ctrl+C to exit"
+            footer = f"Crafted by Minaty001 | State: {self.engine.state.value if hasattr(self.engine, 'state') else 'N/A'} | Ctrl+C to exit"
             try:
                 self._stdscr.addstr(height - 1, 0, footer[:width - 1], curses.A_DIM)
             except curses.error:

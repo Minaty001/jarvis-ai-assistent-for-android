@@ -139,6 +139,10 @@ class BrainRenderer:
                 f"{region.health}"
             )
 
+        lines.append("")
+        lines.append(f"{DIM}── Creator ──{RESET}")
+        lines.append(f"  {DIM}Crafted by Minaty001{RESET}")
+
         return "\n".join(lines)
 
     @staticmethod

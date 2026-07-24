@@ -52,6 +52,7 @@ _INTENT_PATTERNS: list[tuple[str, str, list[str]]] = [
     ("calculate", r"(?:calculate|compute)\s+(.+)", ["expression"]),
     ("remember_fact", r"(?:remember|note|remember\s+that|keep\s+in\s+mind)\s+(?:that\s+)?(.+)", ["fact"]),
     ("what_is", r"what(?:\'s| is)\s+(?:my\s+|the\s+)?(.+)", ["query"]),
+    ("who_created", r"(?:who\s+)?(?:created|made|build|built|own|owner|father|creator|maker|made\s+you)\s*(?:you|this|jarvis|jarvis)?\??", []),
     ("exit", r"(?:exit|quit|goodbye|bye|shutdown|see\s+you)", []),
 ]
 
