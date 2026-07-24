@@ -1,7 +1,7 @@
 """Chat pipeline — Groq LLM client (Wernicke's Area).
 
 Sends messages to Groq API and returns the response text.
-Supports system prompt injection, retry on rate limits, and timeout.
+Retries on rate limits and timeout. Crafted by Minaty001.
 """
 
 from __future__ import annotations
@@ -11,15 +11,6 @@ from typing import Any, Optional
 
 from jarvis.core.config import config as app_config
 from jarvis.utils.logging import log
-
-GROQ_SYSTEM_PROMPT = (
-    "You are JARVIS, an AI assistant inspired by Tony Stark's Jarvis. "
-    "You are friendly, professional, witty, and respectful. "
-    "You speak concisely and conversationally — this is a voice conversation, "
-    "so keep responses brief (1-3 sentences when possible). "
-    "You help with Android tasks, answer questions, and remember user preferences. "
-    "You have a subtle dry wit but are always helpful."
-)
 
 
 class ChatPipeline:
@@ -53,7 +44,6 @@ class ChatPipeline:
 
         Args:
             messages: List of message dicts with 'role' and 'content' keys.
-                     If first message is not a system prompt, one is prepended.
 
         Returns:
             Response text string, or None on failure.
@@ -65,9 +55,6 @@ class ChatPipeline:
         await self._ensure_client()
         if self._client is None:
             return None
-
-        if not messages or messages[0].get("role") != "system":
-            messages.insert(0, {"role": "system", "content": GROQ_SYSTEM_PROMPT})
 
         payload = {
             "model": self.model,

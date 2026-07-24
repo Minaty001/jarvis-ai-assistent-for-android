@@ -1,12 +1,11 @@
 """Memory pipeline — SQLite storage (Hippocampus region).
 
 Stores conversation history, user facts, notes, and reminders.
-Async via aiosqlite with sync sqlite3 fallback.
+Uses aiosqlite. Crafted by Minaty001.
 """
 
 from __future__ import annotations
 
-import sqlite3
 from datetime import datetime
 from typing import Any, Optional
 
@@ -14,11 +13,7 @@ from jarvis.core.config import config as app_config
 
 
 class MemoryPipeline:
-    """Persistent storage backed by SQLite.
-
-    Provides conversation history, key-value memory, notes, and reminders
-    with async interface (aiosqlite) and sync fallback.
-    """
+    """Persistent storage backed by SQLite via aiosqlite."""
 
     def __init__(self, db_path: str | None = None) -> None:
         self.path = db_path or app_config.database_path
@@ -26,20 +21,11 @@ class MemoryPipeline:
 
     async def initialize(self) -> None:
         """Open database connection and create tables."""
-        try:
-            import aiosqlite
-            self._conn = await aiosqlite.connect(self.path)
-            self._conn.row_factory = aiosqlite.Row
-            await self._conn.execute("PRAGMA journal_mode=WAL")
-            await self._create_tables_async()
-        except ImportError:
-            self._conn = sqlite3.connect(self.path)
-            self._conn.row_factory = sqlite3.Row
-            self._conn.execute("PRAGMA journal_mode=WAL")
-            self._create_tables_sync()
+        import aiosqlite
 
-    async def _create_tables_async(self) -> None:
-        assert self._conn is not None
+        self._conn = await aiosqlite.connect(self.path)
+        self._conn.row_factory = aiosqlite.Row
+        await self._conn.execute("PRAGMA journal_mode=WAL")
         await self._conn.executescript("""
             CREATE TABLE IF NOT EXISTS conversation (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -75,65 +61,17 @@ class MemoryPipeline:
         """)
         await self._conn.commit()
 
-    def _create_tables_sync(self) -> None:
-        assert self._conn is not None
-        self._conn.executescript("""
-            CREATE TABLE IF NOT EXISTS conversation (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                role TEXT NOT NULL,
-                content TEXT NOT NULL,
-                timestamp TEXT NOT NULL DEFAULT (datetime('now')),
-                session_id TEXT NOT NULL DEFAULT 'default'
-            );
-            CREATE TABLE IF NOT EXISTS memory (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                key TEXT NOT NULL UNIQUE,
-                value TEXT NOT NULL,
-                timestamp TEXT NOT NULL DEFAULT (datetime('now'))
-            );
-            CREATE TABLE IF NOT EXISTS settings (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                key TEXT NOT NULL UNIQUE,
-                value TEXT NOT NULL
-            );
-            CREATE TABLE IF NOT EXISTS notes (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                title TEXT NOT NULL,
-                content TEXT NOT NULL,
-                timestamp TEXT NOT NULL DEFAULT (datetime('now'))
-            );
-            CREATE TABLE IF NOT EXISTS reminders (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                text TEXT NOT NULL,
-                remind_at TEXT,
-                done INTEGER NOT NULL DEFAULT 0,
-                timestamp TEXT NOT NULL DEFAULT (datetime('now'))
-            );
-        """)
-        self._conn.commit()
-
-    def _is_async(self) -> bool:
-        """Check if connection is async (aiosqlite) or sync (sqlite3)."""
-        return "aiosqlite" in type(self._conn).__module__ if self._conn else False
-
     async def _execute(self, sql: str, params: tuple = ()) -> Any:
         """Execute a write query."""
-        if self._is_async():
-            cur = await self._conn.execute(sql, params)
-            await self._conn.commit()
-            return cur.lastrowid
-        cur = self._conn.execute(sql, params)
-        self._conn.commit()
+        cur = await self._conn.execute(sql, params)
+        await self._conn.commit()
         return cur.lastrowid
 
     async def _fetch(self, sql: str, params: tuple = ()) -> list[dict]:
         """Fetch rows as list of dicts."""
-        if self._is_async():
-            cur = await self._conn.execute(sql, params)
-            rows = await cur.fetchall()
-            return [dict(r) for r in rows]
-        cur = self._conn.execute(sql, params)
-        return [dict(r) for r in cur.fetchall()]
+        cur = await self._conn.execute(sql, params)
+        rows = await cur.fetchall()
+        return [dict(r) for r in rows]
 
     async def save_exchange(self, role: str, content: str) -> None:
         """Save a conversation turn."""
@@ -203,8 +141,5 @@ class MemoryPipeline:
         """Close database connection."""
         if not self._conn:
             return
-        if self._is_async():
-            await self._conn.close()
-        else:
-            self._conn.close()
+        await self._conn.close()
         self._conn = None

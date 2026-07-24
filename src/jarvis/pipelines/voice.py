@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import os
+import shutil
 import subprocess
 import tempfile
 from typing import Optional
@@ -94,12 +95,9 @@ class VoicePipeline:
     def _find_piper(self) -> Optional[str]:
         candidates = ["piper", os.path.expanduser("~/.local/bin/piper")]
         for c in candidates:
-            try:
-                proc = subprocess.run(["which", c], capture_output=True, timeout=5)
-                if proc.returncode == 0:
-                    return c.strip()
-            except Exception:
-                continue
+            found = shutil.which(c)
+            if found:
+                return found
         return None
 
     def _find_piper_voice(self) -> Optional[str]:

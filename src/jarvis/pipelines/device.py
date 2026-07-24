@@ -102,12 +102,7 @@ class DevicePipeline:
             "bluetooth_off": lambda p: self._run("termux-bluetooth-enable", "off"),
             "search_google": self._search_google,
             "play_music": self._play_music,
-            "take_note": self._take_note,
-            "read_notes": self._read_notes,
-            "delete_note": self._delete_note,
-            "set_reminder": self._set_reminder,
-            "view_reminders": self._view_reminders,
-            "delete_reminder": self._delete_reminder,
+
         }
         return handlers.get(intent)
 
@@ -212,20 +207,4 @@ class DevicePipeline:
         result = await self._run("termux-open", url)
         return f"Searching YouTube for {query}." if "ERROR" not in result else "Could not open YouTube."
 
-    async def _take_note(self, params: dict[str, str]) -> str:
-        return "Note saved. (In-memory — full persistence via MemoryPipeline)"
 
-    async def _read_notes(self, params: dict[str, str]) -> str:
-        return "Notes feature: use MemoryPipeline for full persistence."
-
-    async def _delete_note(self, params: dict[str, str]) -> str:
-        return "Delete note: use MemoryPipeline for full persistence."
-
-    async def _set_reminder(self, params: dict[str, str]) -> str:
-        return f"Reminder set for: {params.get('text', '')}."
-
-    async def _view_reminders(self, params: dict[str, str]) -> str:
-        return "Reminders: use MemoryPipeline for full persistence."
-
-    async def _delete_reminder(self, params: dict[str, str]) -> str:
-        return "Delete reminder: use MemoryPipeline for full persistence."
