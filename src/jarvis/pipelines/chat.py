@@ -1,0 +1,109 @@
+"""Chat pipeline — Groq LLM client (Wernicke's Area).
+
+Sends messages to Groq API and returns the response text.
+Supports system prompt injection, retry on rate limits, and timeout.
+"""
+
+from __future__ import annotations
+
+import asyncio
+from typing import Any, Optional
+
+from jarvis.core.config import config as app_config
+from jarvis.utils.logging import log
+
+GROQ_SYSTEM_PROMPT = (
+    "You are JARVIS, an AI assistant inspired by Tony Stark's Jarvis. "
+    "You are friendly, professional, witty, and respectful. "
+    "You speak concisely and conversationally — this is a voice conversation, "
+    "so keep responses brief (1-3 sentences when possible). "
+    "You help with Android tasks, answer questions, and remember user preferences. "
+    "You have a subtle dry wit but are always helpful."
+)
+
+
+class ChatPipeline:
+    """Async Groq API client for LLM inference."""
+
+    def __init__(self) -> None:
+        self.api_key = app_config.groq_api_key
+        self.model = app_config.model_name
+        self.base_url = app_config.groq_api_base
+        self.timeout = app_config.groq_timeout
+        self._client: Any = None
+
+    async def _ensure_client(self) -> None:
+        if self._client is not None:
+            return
+        try:
+            import httpx
+            self._client = httpx.AsyncClient(
+                timeout=self.timeout,
+                headers={
+                    "Authorization": f"Bearer {self.api_key}",
+                    "Content-Type": "application/json",
+                },
+            )
+        except ImportError:
+            log.warning("httpx not installed. Chat pipeline unavailable.")
+            self._client = None
+
+    async def generate(self, messages: list[dict]) -> Optional[str]:
+        """Send messages to Groq and return the response.
+
+        Args:
+            messages: List of message dicts with 'role' and 'content' keys.
+                     If first message is not a system prompt, one is prepended.
+
+        Returns:
+            Response text string, or None on failure.
+        """
+        if not self.api_key:
+            log.error("GROQ_API_KEY not set.")
+            return None
+
+        await self._ensure_client()
+        if self._client is None:
+            return None
+
+        if not messages or messages[0].get("role") != "system":
+            messages.insert(0, {"role": "system", "content": GROQ_SYSTEM_PROMPT})
+
+        payload = {
+            "model": self.model,
+            "messages": messages,
+            "temperature": 0.7,
+            "max_tokens": 512,
+            "stream": False,
+        }
+
+        for attempt in range(2):
+            try:
+                resp = await self._client.post(
+                    f"{self.base_url}/chat/completions",
+                    json=payload,
+                )
+                if resp.status_code == 429:
+                    log.warning("Groq rate limited. Retrying...")
+                    await asyncio.sleep(2)
+                    continue
+                resp.raise_for_status()
+                data = resp.json()
+                return data["choices"][0]["message"]["content"].strip()
+            except Exception as e:
+                log.error(f"Groq API error (attempt {attempt + 1}): {e}")
+                if attempt == 0:
+                    await asyncio.sleep(1)
+                    continue
+                return None
+
+        return None
+
+    async def close(self) -> None:
+        """Close the HTTP client."""
+        if self._client:
+            try:
+                await self._client.aclose()
+            except Exception:
+                pass
+            self._client = None
