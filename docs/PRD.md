@@ -3,7 +3,7 @@
 ## 1. Overview
 
 **Product Name:** Jarvis AI Assistant for Android  
-**Version:** 0.3.0  
+**Version:** 0.4.0  
 **Author:** Minaty001  
 **Repository:** https://github.com/Minaty001/jarvis-ai-assistent-for-android
 

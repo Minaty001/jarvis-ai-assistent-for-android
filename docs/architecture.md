@@ -30,7 +30,7 @@ User: "Hey Jarvis, open the camera"
     6. [Motor → PFC]      Result: "Camera opened"
     7. [PFC → Wernicke's] Generate confirmation text via LLM
     8. [Wernicke's → Broca's] "Opening the camera now"
-    9. [Broca's]           Piper TTS speaks confirmation
+    9. [Broca's]           TTS (Piper → edge-tts → Android) speaks confirmation
     10. [Wernicke's → Hippocampus] Log entire exchange to SQLite
 ```
 
@@ -76,7 +76,7 @@ jarvis-ai-assistent-for-android/
 │       ├── pipelines/
 │       │   ├── speech.py        # Groq Whisper STT + wake word
 │       │   ├── chat.py          # Groq LLM client
-│       │   ├── voice.py         # Piper TTS + termux-tts fallback
+│       │   ├── voice.py         # Piper / edge-tts / Android TTS
 │       │   ├── device.py        # Termux:API device control
 │       │   └── memory.py        # SQLite storage
 │       ├── ui/
@@ -98,7 +98,7 @@ jarvis-ai-assistent-for-android/
 │   └── test_engine.py
 ├── data/                        # SQLite database (created at runtime)
 ├── models/                      # (Legacy — Vosk model no longer required)
-├── voices/                      # Piper TTS voices
+├── voices/                      # Piper TTS voice models (optional)
 └── logs/                        # Log output
 ```
 

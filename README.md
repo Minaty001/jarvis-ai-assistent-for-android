@@ -37,6 +37,7 @@ The assistant is built as 6 independent pipelines, each mapped to a brain cortic
 - [Termux:API](https://wiki.termux.com/wiki/Termux:API) add-on
 - Python 3.11+
 - [Piper TTS](https://github.com/rhasspy/piper) (optional, for local TTS)
+- `edge-tts` auto-installs with the package (free cloud TTS, no key needed)
 - **Groq API key** for STT and LLM ([get one free](https://console.groq.com))
 
 ### Setup
