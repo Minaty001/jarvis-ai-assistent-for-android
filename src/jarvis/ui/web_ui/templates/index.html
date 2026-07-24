@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>J.A.R.V.I.S. Interface</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon-cyan: #00f0ff;
+            --neon-blue: #0077aa;
+            --bg-dark: #020b14;
+            --glass-bg: rgba(2, 20, 35, 0.65);
+            --glass-border: rgba(0, 240, 255, 0.25);
+            --glow-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: #ffffff;
+            font-family: 'Rajdhani', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(0, 119, 170, 0.15) 0%, transparent 70%),
+                linear-gradient(rgba(0, 240, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 240, 255, 0.02) 1px, transparent 1px);
+            background-size: 100% 100%, 30px 30px, 30px 30px;
+        }
+
+        /* Smartphone Container Frame */
+        .phone-wrapper {
+            width: 100%;
+            max-width: 410px;
+            height: 880px;
+            background: rgba(1, 10, 20, 0.95);
+            border-radius: 40px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 240, 255, 0.1);
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid rgba(0, 240, 255, 0.2);
+        }
+
+        /* Top Header */
+        .header {
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .header h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            font-size: 2rem;
+            letter-spacing: 6px;
+            color: #ffffff;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5), 0 0 20px var(--neon-cyan);
+            margin-bottom: 2px;
+        }
+
+        .header p {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.75rem;
+            letter-spacing: 2px;
+            color: var(--neon-cyan);
+            text-shadow: var(--glow-shadow);
+            font-weight: 700;
+        }
+
+        /* Central Brain Canvas — neural network visualization */
+        .core-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            margin: 15px 0 5px 0;
+            height: 280px;
+            border: 1px solid rgba(0, 240, 255, 0.1);
+            border-radius: 8px;
+            background: rgba(0, 5, 12, 0.6);
+            overflow: hidden;
+        }
+
+        #brain-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        /* Status Text below Core */
+        .status-callout {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .status-callout .ready-text {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(255,255,255,0.6);
+        }
+
+        .status-callout .listening-text {
+            font-size: 0.95rem;
+            color: var(--neon-cyan);
+            letter-spacing: 1px;
+            opacity: 0.85;
+            margin-top: 4px;
+            animation: pulseText 1.5s infinite alternate;
+        }
+
+        /* Hexagonal Microphone Trigger */
+        .mic-trigger {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 25px;
+            cursor: pointer;
+        }
+
+        .mic-hexagon {
+            width: 60px;
+            height: 65px;
+            background: rgba(0, 240, 255, 0.1);
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+            border: 1px solid var(--neon-cyan);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: inset 0 0 15px rgba(0, 240, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .mic-hexagon:hover {
+            background: rgba(0, 240, 255, 0.25);
+            box-shadow: 0 0 20px var(--neon-cyan);
+        }
+
+        .mic-hexagon svg {
+            width: 24px;
+            height: 24px;
+            fill: var(--neon-cyan);
+            filter: drop-shadow(0 0 5px var(--neon-cyan));
+        }
+
+        /* Grid HUD Modules */
+        .hud-grid-2x2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .hud-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 6px;
+            padding: 12px;
+            position: relative;
+            box-shadow: inset 0 0 10px rgba(0, 240, 255, 0.05);
+        }
+
+        .hud-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 6px; height: 6px;
+            border-top: 2px solid var(--neon-cyan);
+            border-left: 2px solid var(--neon-cyan);
+        }
+
+        .card-title {
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: #ffffff;
+            margin-bottom: 6px;
+            border-bottom: 1px solid rgba(0, 240, 255, 0.15);
+            padding-bottom: 3px;
+        }
+
+        .card-row {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.75);
+            line-height: 1.4;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .card-row span.highlight {
+            color: var(--neon-cyan);
+            font-weight: 600;
+        }
+
+        .full-width {
+            grid-column: span 2;
+        }
+
+        /* Inline Stats Bar */
+        .stats-inline-bar {
+            background: rgba(2, 15, 28, 0.8);
+            border: 1px solid rgba(0, 240, 255, 0.15);
+            border-radius: 4px;
+            padding: 6px 10px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.72rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 15px;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .stats-inline-bar span {
+            color: var(--neon-cyan);
+        }
+
+        /* Command Line Input */
+        .command-box {
+            background: rgba(0, 15, 25, 0.8);
+            border: 1px solid var(--neon-cyan);
+            border-radius: 4px;
+            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 0 10px rgba(0, 240, 255, 0.1);
+        }
+
+        .command-label {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            color: var(--neon-cyan);
+            font-weight: 700;
+            margin-right: 8px;
+            letter-spacing: 1px;
+        }
+
+        .command-input {
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #ffffff;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 0.95rem;
+            width: 100%;
+            letter-spacing: 1px;
+        }
+
+        /* Animations */
+        @keyframes pulseText {
+            from { opacity: 0.4; text-shadow: 0 0 2px var(--neon-cyan); }
+            to { opacity: 1; text-shadow: 0 0 8px var(--neon-cyan); }
+        }
+
+        /* Bottom Navigation Bar Simulation */
+        .nav-ticks {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin-top: 12px;
+            opacity: 0.5;
+        }
+        .tick {
+            width: 15px;
+            height: 2px;
+            background: #fff;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="phone-wrapper">
+        
+        <div class="header">
+            <h1>J.A.R.V.I.S.</h1>
+            <p>SYSTEM STATUS: OPTIMAL</p>
+        </div>
+
+        <div class="core-container">
+            <canvas id="brain-canvas"></canvas>
+        </div>
+
+        <div class="status-callout">
+            <div class="ready-text" id="status-text">READY, SIR.</div>
+            <div class="listening-text" id="listening-text">Listening...</div>
+        </div>
+
+        <div class="mic-trigger" id="micBtn">
+            <div class="mic-hexagon">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12,2A3,3 0 0,1 15,5V11A3,3 0 0,1 12,14A3,3 0 0,1 9,11V5A3,3 0 0,1 12,2M19,11C19,14.53 16.39,17.44 13,17.93V21H11V17.93C7.61,17.44 5,14.53 5,11H7A5,5 0 0,0 12,16A5,5 0 0,0 17,11H19Z" />
+                </svg>
+            </div>
+        </div>
+
+        <div class="hud-grid-2x2">
+            <div class="hud-card">
+                <div class="card-title">CORTEX STATUS</div>
+                <div class="card-row">PFC: <span class="highlight" id="pfc-status">Idle</span></div>
+                <div class="card-row">Memory: <span class="highlight" id="mem-status">Online</span></div>
+            </div>
+
+            <div class="hud-card">
+                <div class="card-title">DIAGNOSTICS</div>
+                <div class="card-row">Network: <span class="highlight" id="net-status">Active</span></div>
+                <div class="card-row">Sensors: <span class="highlight" id="sensor-status">Online</span></div>
+            </div>
+
+            <div class="hud-card full-width">
+                <div class="card-title">NEURAL PATHWAYS</div>
+                <div class="card-row" id="pathways-display">All pathways: <span class="highlight">Nominal</span></div>
+            </div>
+        </div>
+
+        <div class="stats-inline-bar">
+            <div>TEMP: <span id="temp-val">22°C</span></div>
+            <div>CPU: <span id="cpu-val">18%</span></div>
+            <div>ACT: <span id="activity-val">0%</span></div>
+            <div>SYN: <span id="synapse-val">0</span></div>
+            <div>BATT: <span id="batt-val">89%</span></div>
+        </div>
+
+        <div class="command-box">
+            <span class="command-label">COMMAND:</span>
+            <input type="text" class="command-input" id="cmdInput" placeholder="Type a command..." autocomplete="off">
+        </div>
+
+        <div class="nav-ticks">
+            <div class="tick" style="transform: rotate(90deg); width: 10px;"></div>
+            <div class="tick" style="border-radius: 50%; width: 10px; height: 10px;"></div>
+            <div class="tick"></div>
+        </div>
+
+    </div>
+
+    <script src="{{ url_for('static', filename='brain.js') }}"></script>
+    <script>
+        // Fetch brain state from the API and update UI
+        async function fetchBrainState() {
+            try {
+                const resp = await fetch('/api/brain-state');
+                const data = await resp.json();
+                updateUI(data);
+            } catch (e) {
+                console.error('Brain state fetch failed:', e);
+            }
+        }
+
+        function updateUI(data) {
+            const regions = data.regions || {};
+            const activeCount = Object.values(regions).filter(r => r.active).length;
+
+            // Update cortex status cards
+            document.getElementById('pfc-status').innerText = regions.pfc?.active ? 'Active' : 'Idle';
+            document.getElementById('mem-status').innerText = regions.hippocampus?.active ? 'Writing' : 'Standby';
+
+            // Update neural activity
+            document.getElementById('activity-val').innerText = (data.neural_activity_pct || 0).toFixed(0) + '%';
+            document.getElementById('synapse-val').innerText = data.total_synapses || 0;
+
+            // Update pathways
+            const paths = data.active_pathways || [];
+            const pathEl = document.getElementById('pathways-display');
+            if (paths.length > 0) {
+                pathEl.innerHTML = 'Active: <span class="highlight">' + paths.map(p => p[0] + '→' + p[1]).join(' | ') + '</span>';
+            } else {
+                pathEl.innerHTML = 'All pathways: <span class="highlight">Nominal</span>';
+            }
+
+            // Update status text based on engine state
+            const statusText = document.getElementById('status-text');
+            if (activeCount > 2) {
+                statusText.innerText = 'PROCESSING...';
+            } else {
+                statusText.innerText = 'READY, SIR.';
+            }
+        }
+
+        // Simulated real-time variance for system stats
+        setInterval(() => {
+            const cpu = Math.floor(Math.random() * 15) + 10; 
+            const temp = Math.floor(Math.random() * 3) + 21;
+            document.getElementById('cpu-val').innerText = cpu + '%';
+            document.getElementById('temp-val').innerText = temp + '°C';
+        }, 3000);
+
+        // Poll brain state every 2 seconds
+        setInterval(fetchBrainState, 2000);
+        fetchBrainState();
+
+        // Command Console Input handler
+        const cmdInput = document.getElementById('cmdInput');
+        cmdInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const command = this.value.trim();
+                if (command.toLowerCase() === 'clear') {
+                    this.value = '';
+                } else if (command !== '') {
+                    fetch('/api/command', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({command: command})
+                    }).then(r => r.json()).then(data => {
+                        const listeningEl = document.getElementById('listening-text');
+                        listeningEl.innerText = data.response || 'Command processed.';
+                        setTimeout(() => {
+                            listeningEl.innerText = 'Listening...';
+                        }, 3000);
+                    }).catch(() => {
+                        alert('Command relay: ' + command.toUpperCase());
+                    });
+                    this.value = '';
+                }
+            }
+        });
+
+        // Click interaction on Mic element
+        const micBtn = document.getElementById('micBtn');
+        micBtn.addEventListener('click', () => {
+            const textElement = document.getElementById('listening-text');
+            textElement.innerText = 'Processing Voice Grid...';
+            textElement.style.color = '#ffffff';
+            setTimeout(() => {
+                textElement.innerText = 'Listening...';
+                textElement.style.color = 'var(--neon-cyan)';
+            }, 2000);
+        });
+
+        // SSE stream for live updates
+        if (!!window.EventSource) {
+            const source = new EventSource('/api/stream');
+            source.onmessage = function(e) {
+                try {
+                    const data = JSON.parse(e.data);
+                    updateUI(data);
+                } catch (err) {}
+            };
+        }
+    </script>
+</body>
+</html>
