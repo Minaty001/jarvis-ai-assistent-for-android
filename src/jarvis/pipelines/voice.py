@@ -1,6 +1,7 @@
 """Voice pipeline — Text-to-Speech (Broca's Area).
 
 Primary: Piper TTS (local, low-latency).
+Fallback: edge-tts (Microsoft Edge free TTS, generates WAV via paplay).
 Fallback: termux-tts-speak (Android TTS engine).
 Final fallback: log only.
 """
@@ -14,12 +15,14 @@ import subprocess
 import tempfile
 from typing import Optional
 
+import edge_tts
+
 from jarvis.core.config import config as app_config
 from jarvis.utils.logging import log
 
 
 class VoicePipeline:
-    """Async TTS with Piper (preferred) and termux-tts-speak fallback."""
+    """Async TTS with Piper (preferred), edge-tts, and termux-tts-speak fallback."""
 
     def __init__(self) -> None:
         self._speak_task: Optional[asyncio.Task] = None
@@ -37,8 +40,10 @@ class VoicePipeline:
         self._speak_task = asyncio.create_task(self._do_speak(text))
 
     async def _do_speak(self, text: str) -> None:
-        """Internal: try Piper, then termux-tts-speak, then log-only."""
+        """Internal: try Piper, then edge-tts, then termux-tts-speak, then log-only."""
         if await self._try_piper(text):
+            return
+        if await self._try_edge_tts(text):
             return
         if await self._try_termux_tts(text):
             return
@@ -78,6 +83,22 @@ class VoicePipeline:
         except Exception as e:
             log.debug(f"Piper execution failed: {e}")
 
+    async def _try_edge_tts(self, text: str) -> bool:
+        """Fallback: use edge-tts (Microsoft Edge free TTS) via paplay."""
+        paplay = shutil.which("paplay")
+        if not paplay:
+            return False
+        try:
+            with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
+                output_path = tmp.name
+            await edge_tts.Communicate(text, voice="en-US-AriaNeural").save(output_path)
+            loop = asyncio.get_running_loop()
+            await loop.run_in_executor(None, self._play_wav_sync, output_path)
+            return True
+        except Exception as e:
+            log.debug(f"edge-tts failed: {e}")
+            return False
+
     def _play_wav_sync(self, path: str) -> None:
         try:
             subprocess.run(["termux-media-player", "play", path], capture_output=True, timeout=10)
@@ -85,7 +106,12 @@ class VoicePipeline:
             try:
                 subprocess.run(["aplay", path], capture_output=True, timeout=10)
             except Exception:
-                pass
+                paplay = shutil.which("paplay")
+                if paplay:
+                    try:
+                        subprocess.run([paplay, path], capture_output=True, timeout=10)
+                    except Exception:
+                        pass
         finally:
             try:
                 os.unlink(path)
