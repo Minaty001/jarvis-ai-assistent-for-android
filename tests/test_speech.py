@@ -34,3 +34,12 @@ async def test_listen_returns_none_without_capture():
     pipeline = SpeechPipeline()
     result = await pipeline.listen(timeout=0.1)
     assert result is None
+
+
+def test_detect_wake_word():
+    pipeline = SpeechPipeline()
+    pipeline._wake_words = ["jarvis", "boss"]
+    assert pipeline._detect_wake_word("hello jarvis, how are you") is True
+    assert pipeline._detect_wake_word("yes boss") is True
+    assert pipeline._detect_wake_word("glossary is here") is False  # 'gloss' should not trigger 'boss'
+    assert pipeline._detect_wake_word("emboss the text") is False

@@ -25,12 +25,12 @@ class Config:
     voices_dir: str = field(default_factory=lambda: os.getenv("VOICES_DIR", str(BASE_DIR / "voices")))
     logs_dir: str = field(default_factory=lambda: os.getenv("LOGS_DIR", str(BASE_DIR / "logs")))
     wake_words: list[str] = field(default_factory=lambda: [w.strip().lower() for w in os.getenv("WAKE_WORDS", "jarvis,boss,computer").split(",") if w.strip()])
-    sample_rate: int = int(os.getenv("SAMPLE_RATE", "16000"))
-    listen_timeout: float = float(os.getenv("LISTEN_TIMEOUT", "5.0"))
-    groq_timeout: float = float(os.getenv("GROQ_TIMEOUT", "30.0"))
-    max_history: int = int(os.getenv("MAX_HISTORY", "20"))
-    tts_rate: int = int(os.getenv("TTS_RATE", "175"))
-    tts_pitch: int = int(os.getenv("TTS_PITCH", "100"))
+    sample_rate: int = field(default_factory=lambda: int(os.getenv("SAMPLE_RATE", "16000")))
+    listen_timeout: float = field(default_factory=lambda: float(os.getenv("LISTEN_TIMEOUT", "5.0")))
+    groq_timeout: float = field(default_factory=lambda: float(os.getenv("GROQ_TIMEOUT", "30.0")))
+    max_history: int = field(default_factory=lambda: int(os.getenv("MAX_HISTORY", "20")))
+    tts_rate: int = field(default_factory=lambda: int(os.getenv("TTS_RATE", "175")))
+    tts_pitch: int = field(default_factory=lambda: int(os.getenv("TTS_PITCH", "100")))
 
     def __post_init__(self) -> None:
         """Ensure required directories exist."""

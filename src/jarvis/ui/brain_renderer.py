@@ -18,6 +18,11 @@ COLORS = {
     "broca": {"name": "Broca", "color": "\033[38;2;136;68;255m", "hex": "#8844ff", "label": "TTS"},
     "motor": {"name": "Motor", "color": "\033[38;2;255;51;102m", "hex": "#ff3366", "label": "Device"},
     "hippocampus": {"name": "Hippocampus", "color": "\033[38;2;0;102;255m", "hex": "#0066ff", "label": "Memory"},
+    "occipital": {"name": "Occipital", "color": "\033[38;2;255;0;255m", "hex": "#ff00ff", "label": "Vision"},
+    "somatosensory": {"name": "Somatosensory", "color": "\033[38;2;0;255;204m", "hex": "#00ffcc", "label": "Telemetry"},
+    "defense": {"name": "Defense", "color": "\033[38;2;255;51;0m", "hex": "#ff3300", "label": "Protocol"},
+    "thalamus": {"name": "Thalamus", "color": "\033[38;2;255;255;0m", "hex": "#ffff00", "label": "Search"},
+    "cerebellum": {"name": "Cerebellum", "color": "\033[38;2;170;255;0m", "hex": "#aaff00", "label": "Scheduler"},
 }
 RESET = "\033[0m"
 BOLD = "\033[1m"

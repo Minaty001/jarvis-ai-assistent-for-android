@@ -78,3 +78,36 @@ async def test_build_context_includes_facts(mem):
     assert "name: Jarvis" in system_prompt
     assert len(messages) >= 2  # system + user
     assert messages[-1]["content"] == "what's my name?"
+
+
+@pytest.mark.asyncio
+async def test_notes_crud(mem):
+    note_id = await mem.save_note("Groceries", "buy milk and eggs")
+    assert note_id > 0
+
+    notes = await mem.get_notes()
+    assert len(notes) == 1
+    assert notes[0]["title"] == "Groceries"
+    assert notes[0]["content"] == "buy milk and eggs"
+
+    deleted = await mem.delete_note("milk")
+    assert deleted is True
+
+    notes_after = await mem.get_notes()
+    assert len(notes_after) == 0
+
+
+@pytest.mark.asyncio
+async def test_reminders_crud(mem):
+    rem_id = await mem.save_reminder("Call Doctor")
+    assert rem_id > 0
+
+    rems = await mem.get_reminders()
+    assert len(rems) == 1
+    assert rems[0]["text"] == "Call Doctor"
+
+    deleted = await mem.delete_reminder("Doctor")
+    assert deleted is True
+
+    rems_after = await mem.get_reminders()
+    assert len(rems_after) == 0

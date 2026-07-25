@@ -6,7 +6,7 @@ A modular, voice-controlled AI assistant for Android Termux with a brain-inspire
 
 ## Architecture
 
-The assistant is built as 6 independent pipelines, each mapped to a brain cortical region:
+The assistant is built as 11 independent pipelines, each mapped to a brain cortical region:
 
 | Region | Pipeline | Function |
 |--------|----------|----------|
@@ -16,18 +16,30 @@ The assistant is built as 6 independent pipelines, each mapped to a brain cortic
 | Broca's Area | Voice | Piper TTS / edge-tts / Android TTS, speech output |
 | Motor Cortex | Device | Termux:API device control |
 | Hippocampus | Memory | SQLite storage |
+| Occipital Cortex | Vision | Camera capture, photo metadata & visual inspection |
+| Somatosensory Cortex | Telemetry | System health diagnostics (CPU, RAM, storage, battery) |
+| Defense Cortex | Protocol | Stark security protocols (House Party, Stealth Mode, Protocol Alpha, Lockdown) |
+| Thalamus | Search | Live weather telemetry & DuckDuckGo web intelligence search |
+| Cerebellum | Scheduler | Async countdown timers & background callbacks |
 
-10 bidirectional neural pathways connect the regions, visualized in real-time.
+10+ bidirectional neural pathways connect the regions, visualized in real-time.
 
 ## Features
 
-- Voice interaction with wake word ("Jarvis", "Boss", "Computer")
-- Speech-to-text via **Groq Whisper API** (`whisper-large-v3`)
-- LLM reasoning via Groq API (`llama-3.1-8b-instant`)
-- Text-to-speech via Piper TTS (local), edge-tts (free cloud), or Android TTS fallback
-- Android device control (apps, settings, flashlight, wifi, bluetooth, etc.)
-- Persistent memory with conversation history and user facts
-- Brain visualization UI (terminal TUI + web UI)
+- **Voice Interaction:** Wake word activation ("Jarvis", "Boss", "Computer")
+- **Speech-to-Text:** **Groq Whisper API** (`whisper-large-v3`)
+- **LLM Reasoning & Function Calling:** Groq API (`llama-3.1-8b-instant`) with OpenAI-compatible tool specifications (`tools.py`)
+- **Text-to-Speech:** Piper TTS (local), edge-tts (free cloud), or Android TTS fallback
+- **Android Native Ergonomics:** Clipboard set/get, haptic vibration, toast notification overlays, GPS location tracking, telephony call/SMS dispatch, media hardware keys
+- **Custom Voice Command Macros:** Define persistent custom voice shortcuts (e.g. *"add custom command 'morning briefing' to tell weather and get system diagnostics"*)
+- **Proactive Autonomy:** Background system telemetry and battery low warning monitor (`autonomy.py`)
+- **Stark Security Protocols:** Named MCU protocols (`House Party Protocol`, `Stealth Mode`, `Protocol Alpha`, `Lockdown`, `Overdrive`)
+- **Visual Intelligence:** Camera snapshot analysis & image target inspection via termux-camera-photo
+- **System Telemetry:** Real-time diagnostics for CPU load, RAM usage, storage space, and battery status
+- **Web Intelligence & Weather:** Live weather reports (Open-Meteo / wttr.in) & instant web search snippets
+- **Async Countdown Scheduler:** Live countdown timers & scheduled background callbacks
+- **Persistent Memory:** SQLite storage for conversation history, user facts, notes, reminders, clipboard history, and location log
+- **Brain Visualization UI:** Real-time 11-region visual cortical network map (Terminal TUI + Web UI)
 
 ## Installation
 
@@ -84,7 +96,7 @@ python -m jarvis --text
 ### Single Query
 
 ```bash
-python -m jarvis --once "what's the time"
+python -m jarvis --once "execute house party protocol"
 ```
 
 ### Web UI
@@ -105,17 +117,24 @@ src/jarvis/
 ├── core/
 │   ├── config.py        # Environment config loader
 │   ├── intent.py        # Rule-based intent classifier
+│   ├── tools.py         # LLM function calling registry & tool schemas
 │   └── engine.py        # Orchestrator state machine
 ├── pipelines/
 │   ├── speech.py        # Groq Whisper STT + wake word
-│   ├── chat.py          # Groq LLM client
+│   ├── chat.py          # Groq LLM client with function calling
 │   ├── voice.py         # Piper / edge-tts / Android TTS
-│   ├── device.py        # Termux:API device control
-│   └── memory.py        # SQLite storage
+│   ├── device.py        # Termux:API device & hardware control
+│   ├── memory.py        # SQLite storage (conversations, facts, clipboard, location)
+│   ├── vision.py        # Visual inspection & camera capture
+│   ├── telemetry.py     # System health & diagnostic reporting
+│   ├── protocol.py      # Stark security protocol engine
+│   ├── search.py        # Live weather & web intelligence
+│   ├── scheduler.py     # Async countdown timers
+│   └── autonomy.py      # Proactive background health & battery monitor
 ├── ui/
-│   ├── brain_renderer.py  # Brain visualization engine
+│   ├── brain_renderer.py  # 11-region brain visualization engine
 │   ├── tui.py             # Curses terminal UI
-│   └── web_ui/            # Flask web UI
+│   └── web_ui/            # Flask web UI with 11-region arc reactor visualizer
 └── utils/
     └── logging.py       # Logger setup
 ```

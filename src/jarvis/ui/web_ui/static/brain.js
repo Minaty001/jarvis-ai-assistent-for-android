@@ -192,15 +192,20 @@ class BrainCanvas {
         const w = this.canvas.width;
         const h = this.canvas.height;
         const cx = w / 2;
-        const cy = h / 2;
+        const cy = h / 2 - 10;
 
         return {
-            pfc: { x: cx, y: cy - 90 },
-            auditory: { x: cx - 70, y: cy - 20 },
-            motor: { x: cx + 70, y: cy - 20 },
-            wernicke: { x: cx - 50, y: cy + 60 },
-            broca: { x: cx + 50, y: cy + 60 },
-            hippocampus: { x: cx, y: cy + 120 },
+            pfc: { x: cx, y: cy - 100 },
+            auditory: { x: cx - 75, y: cy - 50 },
+            motor: { x: cx + 75, y: cy - 50 },
+            wernicke: { x: cx - 45, y: cy + 10 },
+            broca: { x: cx + 45, y: cy + 10 },
+            hippocampus: { x: cx, y: cy + 115 },
+            occipital: { x: cx - 125, y: cy - 90 },
+            somatosensory: { x: cx + 125, y: cy - 90 },
+            defense: { x: cx - 110, y: cy + 70 },
+            thalamus: { x: cx + 110, y: cy + 70 },
+            cerebellum: { x: cx, y: cy + 55 },
         };
     }
 

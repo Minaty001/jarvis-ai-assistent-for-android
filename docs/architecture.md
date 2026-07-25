@@ -6,7 +6,7 @@
 
 The assistant's architecture mirrors the human brain. Each capability is an independent **pipeline** mapped to a **cortical region**. A lightweight **Engine** orchestrates data flow between them, mimicking thalamocortical relay. Pipelines are decoupled — they exchange typed data through the engine and know nothing of each other.
 
-## 2. Six Cortical Regions
+## 2. Eleven Cortical Regions
 
 | # | Region | Pipeline | File | Function | Colour |
 |---|--------|----------|------|----------|--------|
@@ -16,6 +16,11 @@ The assistant's architecture mirrors the human brain. Each capability is an inde
 | 4 | Broca's Area | Voice | `pipelines/voice.py` | Piper TTS / edge-tts / Android TTS, speech output | Purple `#8844ff` |
 | 5 | Motor Cortex | Device | `pipelines/device.py` | Termux:API Android device control | Red `#ff3366` |
 | 6 | Hippocampus | Memory | `pipelines/memory.py` | SQLite conversation history and facts | Blue `#0066ff` |
+| 7 | Occipital Cortex | Vision | `pipelines/vision.py` | Camera capture, photo metadata & visual inspection | Magenta `#ff00ff` |
+| 8 | Somatosensory Cortex | Telemetry | `pipelines/telemetry.py` | System health diagnostics (CPU, RAM, storage, battery) | Teal `#00ffcc` |
+| 9 | Defense Cortex | Protocol | `pipelines/protocol.py` | Stark security protocols (House Party, Stealth Mode, Protocol Alpha) | Bright Red `#ff3300` |
+| 10 | Thalamus | Search | `pipelines/search.py` | Live weather telemetry & DuckDuckGo web search | Yellow `#ffff00` |
+| 11 | Cerebellum | Scheduler | `pipelines/scheduler.py` | Async countdown timers & background callbacks | Lime `#aaff00` |
 
 ## 3. Data Flow — Single Voice Turn
 
@@ -116,7 +121,7 @@ The engine transitions through states as a voice turn progresses. If the speech 
 
 The intent classifier (`core/intent.py`) is a rule-based regex matcher. It runs **before** the LLM call so that simple device commands bypass the LLM entirely for low latency. Unmatched input falls through to `general_chat` which hits the LLM.
 
-**Supported intents:** open_settings, open_camera, open_gallery, open_youtube, open_website, open_app, close_app, go_home, show_recent, show_notifications, flashlight_on/off, volume_up/down, set_volume, brightness_up/down, set_brightness, tell_time, tell_date, battery_status, wifi_on/off, wifi_status, bluetooth_on/off, search_google, play_music, take_note, read_notes, delete_note, set_reminder, view_reminders, delete_reminder, calculate, remember_fact, what_is, who_created, exit, general_chat.
+**Supported intents:** open_settings, open_camera, open_gallery, open_youtube, open_website, open_app, close_app, go_home, show_recent, show_notifications, flashlight_on/off, volume_up/down, set_volume, brightness_up/down, set_brightness, tell_time, tell_date, battery_status, wifi_on/off, wifi_status, bluetooth_on/off, search_google, play_music, take_note, read_notes, delete_note, set_reminder, view_reminders, delete_reminder, calculate, remember_fact, what_is, who_created, tell_weather, system_telemetry, run_protocol, set_timer, view_timers, cancel_timer, scan_vision, web_search_intel, exit, general_chat.
 
 ## 8. Graceful Degradation
 

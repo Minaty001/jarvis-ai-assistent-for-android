@@ -56,6 +56,7 @@ class VoicePipeline:
         if not piper or not voice:
             return False
 
+        output_path = None
         try:
             with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
                 output_path = tmp.name
@@ -69,6 +70,12 @@ class VoicePipeline:
         except Exception as e:
             log.debug(f"Piper TTS failed: {e}")
             return False
+        finally:
+            if output_path and os.path.exists(output_path):
+                try:
+                    os.unlink(output_path)
+                except Exception:
+                    pass
 
     def _run_piper_sync(self, piper_bin: str, voice_path: str, text: str, output_path: str) -> None:
         try:
@@ -88,6 +95,7 @@ class VoicePipeline:
         paplay = shutil.which("paplay")
         if not paplay:
             return False
+        output_path = None
         try:
             with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
                 output_path = tmp.name
@@ -98,6 +106,12 @@ class VoicePipeline:
         except Exception as e:
             log.debug(f"edge-tts failed: {e}")
             return False
+        finally:
+            if output_path and os.path.exists(output_path):
+                try:
+                    os.unlink(output_path)
+                except Exception:
+                    pass
 
     def _play_wav_sync(self, path: str) -> None:
         try:

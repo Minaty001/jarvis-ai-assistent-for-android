@@ -308,19 +308,21 @@
 
         <div class="hud-grid-2x2">
             <div class="hud-card">
-                <div class="card-title">CORTEX STATUS</div>
-                <div class="card-row">PFC: <span class="highlight" id="pfc-status">Idle</span></div>
-                <div class="card-row">Memory: <span class="highlight" id="mem-status">Online</span></div>
+                <div class="card-title">CORTEX MATRIX (11 REGIONS)</div>
+                <div class="card-row">PFC (Exec): <span class="highlight" id="pfc-status">Idle</span></div>
+                <div class="card-row">Vision: <span class="highlight" id="vision-status">Standby</span></div>
+                <div class="card-row">Defense: <span class="highlight" id="defense-status">Standby</span></div>
             </div>
 
             <div class="hud-card">
-                <div class="card-title">DIAGNOSTICS</div>
-                <div class="card-row">Network: <span class="highlight" id="net-status">Active</span></div>
-                <div class="card-row">Sensors: <span class="highlight" id="sensor-status">Online</span></div>
+                <div class="card-title">TELEMETRY & SENSORS</div>
+                <div class="card-row">Telemetry: <span class="highlight" id="telem-status">Nominal</span></div>
+                <div class="card-row">Search: <span class="highlight" id="search-status">Ready</span></div>
+                <div class="card-row">Scheduler: <span class="highlight" id="sched-status">Active</span></div>
             </div>
 
             <div class="hud-card full-width">
-                <div class="card-title">NEURAL PATHWAYS</div>
+                <div class="card-title">NEURAL PATHWAYS (11 CORTICAL NODES)</div>
                 <div class="card-row" id="pathways-display">All pathways: <span class="highlight">Nominal</span></div>
             </div>
         </div>
@@ -365,7 +367,11 @@
 
             // Update cortex status cards
             document.getElementById('pfc-status').innerText = regions.pfc?.active ? 'Active' : 'Idle';
-            document.getElementById('mem-status').innerText = regions.hippocampus?.active ? 'Writing' : 'Standby';
+            document.getElementById('vision-status').innerText = regions.occipital?.active ? 'Scanning' : 'Standby';
+            document.getElementById('defense-status').innerText = regions.defense?.active ? 'Protocol' : 'Standby';
+            document.getElementById('telem-status').innerText = regions.somatosensory?.active ? 'Monitoring' : 'Standby';
+            document.getElementById('search-status').innerText = regions.thalamus?.active ? 'Querying' : 'Ready';
+            document.getElementById('sched-status').innerText = regions.cerebellum?.active ? 'Active' : 'Idle';
 
             // Update neural activity
             document.getElementById('activity-val').innerText = (data.neural_activity_pct || 0).toFixed(0) + '%';

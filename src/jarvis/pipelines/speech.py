@@ -64,19 +64,22 @@ def _find_audio_capture() -> str | None:
 def _wav_bytes(raw_data: bytes, sample_rate: int, nchannels: int = 1, sampwidth: int = 2) -> bytes:
     """Wrap raw PCM bytes in WAV container, return WAV bytes."""
     buf = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
+    filename = buf.name
+    buf.close()
     try:
-        with wave.open(buf, "wb") as wf:
+        with wave.open(filename, "wb") as wf:
             wf.setnchannels(nchannels)
             wf.setsampwidth(sampwidth)
             wf.setframerate(sample_rate)
             wf.writeframes(raw_data)
-        with open(buf.name, "rb") as f:
+        with open(filename, "rb") as f:
             return f.read()
     finally:
         try:
-            os.unlink(buf.name)
+            os.unlink(filename)
         except Exception:
             pass
+
 
 
 def _record_sounddevice(duration: float, sample_rate: int = 16000) -> bytes | None:
@@ -211,9 +214,10 @@ class SpeechPipeline:
         log.info(f"Microphone ready ({self._capture_method}). Listening...")
 
     def _detect_wake_word(self, text: str) -> bool:
-        """Check if any configured wake word appears in the transcribed text."""
+        """Check if any configured wake word appears as a word in the transcribed text."""
+        import re
         for ww in self._wake_words:
-            if ww in text:
+            if re.search(r"\b" + re.escape(ww) + r"\b", text, re.IGNORECASE):
                 return True
         return False
 
@@ -223,13 +227,17 @@ class SpeechPipeline:
         if recorder is None:
             return None
 
-        loop = asyncio.get_running_loop()
-        audio = await loop.run_in_executor(None, recorder, duration, app_config.sample_rate)
-        if audio is None:
-            return None
+        try:
+            loop = asyncio.get_running_loop()
+            audio = await loop.run_in_executor(None, recorder, duration, app_config.sample_rate)
+            if audio is None:
+                return None
 
-        text = await loop.run_in_executor(None, _transcribe, audio, self._api_key)
-        return text
+            text = await loop.run_in_executor(None, _transcribe, audio, self._api_key)
+            return text
+        except Exception as e:
+            log.debug(f"Audio capture/transcription error: {e}")
+            return None
 
     async def wait_for_wake(self) -> bool:
         """Loop: capture short audio chunks and check for wake word.

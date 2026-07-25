@@ -63,7 +63,12 @@ class TUI:
             "wernicke": eng_state in ("processing",),
             "broca": eng_state in ("speaking",),
             "motor": eng_state in ("processing",),
-            "hippocampus": True,  # always writing
+            "hippocampus": True,
+            "occipital": eng_state in ("processing",),
+            "somatosensory": True,
+            "defense": eng_state in ("processing",),
+            "thalamus": eng_state in ("processing",),
+            "cerebellum": True,
         }
 
         # Latency simulation (in production, measure actual pipeline latency)
@@ -74,6 +79,11 @@ class TUI:
             "broca": 800.0 if region_active["broca"] else 0.0,
             "motor": 50.0 if region_active["motor"] else 0.0,
             "hippocampus": 3.0,
+            "occipital": 150.0 if region_active["occipital"] else 0.0,
+            "somatosensory": 10.0,
+            "defense": 80.0 if region_active["defense"] else 0.0,
+            "thalamus": 200.0 if region_active["thalamus"] else 0.0,
+            "cerebellum": 5.0,
         }
 
         for key, info in COLORS.items():
@@ -92,16 +102,20 @@ class TUI:
             pathways.append(("Auditory", "Wernicke"))
         if region_active["wernicke"]:
             pathways.append(("Wernicke", "Broca"))
-        if region_active["wernicke"]:
             pathways.append(("Wernicke", "Hippocampus"))
+            pathways.append(("Wernicke", "Thalamus"))
         if region_active["motor"]:
             pathways.append(("PFC", "Motor"))
+        if region_active["occipital"]:
+            pathways.append(("Occipital", "PFC"))
+        if region_active["defense"]:
+            pathways.append(("PFC", "Defense"))
         state.active_pathways = pathways
 
         # Overall metrics
         active_count = sum(1 for v in region_active.values() if v)
-        state.neural_activity_pct = (active_count / 6) * 100
-        state.cortex_health = "OPTIMAL" if active_count <= 4 else "HIGH LOAD"
+        state.neural_activity_pct = (active_count / 11) * 100
+        state.cortex_health = "OPTIMAL" if active_count <= 8 else "HIGH LOAD"
         state.total_synapses = len(pathways)
 
         return state

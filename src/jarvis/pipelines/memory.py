@@ -53,6 +53,24 @@ class MemoryPipeline:
                 done INTEGER NOT NULL DEFAULT 0,
                 timestamp TEXT NOT NULL DEFAULT (datetime('now'))
             );
+            CREATE TABLE IF NOT EXISTS clipboard_history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                content TEXT NOT NULL,
+                timestamp TEXT NOT NULL DEFAULT (datetime('now'))
+            );
+            CREATE TABLE IF NOT EXISTS location_log (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                latitude REAL NOT NULL,
+                longitude REAL NOT NULL,
+                provider TEXT NOT NULL DEFAULT 'gps',
+                timestamp TEXT NOT NULL DEFAULT (datetime('now'))
+            );
+            CREATE TABLE IF NOT EXISTS custom_commands (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                trigger_phrase TEXT NOT NULL UNIQUE,
+                actions TEXT NOT NULL,
+                created_at TEXT NOT NULL DEFAULT (datetime('now'))
+            );
         """)
         await self._conn.commit()
 
@@ -106,6 +124,69 @@ class MemoryPipeline:
             return ""
         return "\n".join(f"- {r['key']}: {r['value']}" for r in rows)
 
+    async def save_note(self, title: str, content: str) -> int:
+        """Save a new note."""
+        return await self._execute(
+            "INSERT INTO notes (title, content) VALUES (?, ?)",
+            (title.strip(), content.strip()),
+        )
+
+    async def get_notes(self) -> list[dict]:
+        """Fetch all stored notes."""
+        return await self._fetch("SELECT id, title, content, timestamp FROM notes ORDER BY id DESC")
+
+    async def delete_note(self, query: str) -> bool:
+        """Delete note(s) matching title or content query."""
+        cur = await self._conn.execute(
+            "DELETE FROM notes WHERE LOWER(title) LIKE ? OR LOWER(content) LIKE ?",
+            (f"%{query.lower().strip()}%", f"%{query.lower().strip()}%"),
+        )
+        await self._conn.commit()
+        return cur.rowcount > 0
+
+    async def save_reminder(self, text: str, remind_at: str | None = None) -> int:
+        """Save a new reminder."""
+        return await self._execute(
+            "INSERT INTO reminders (text, remind_at) VALUES (?, ?)",
+            (text.strip(), remind_at),
+        )
+
+    async def get_reminders(self) -> list[dict]:
+        """Fetch all active reminders."""
+        return await self._fetch("SELECT id, text, remind_at, done, timestamp FROM reminders WHERE done = 0 ORDER BY id DESC")
+
+    async def delete_reminder(self, query: str) -> bool:
+        """Delete reminder(s) matching text query or set done."""
+        cur = await self._conn.execute(
+            "DELETE FROM reminders WHERE LOWER(text) LIKE ?",
+            (f"%{query.lower().strip()}%",),
+        )
+        await self._conn.commit()
+        return cur.rowcount > 0
+
+    async def save_clipboard(self, content: str) -> int:
+        """Save a clipboard snippet to history."""
+        return await self._execute(
+            "INSERT INTO clipboard_history (content) VALUES (?)",
+            (content.strip(),),
+        )
+
+    async def get_recent_clipboard(self, limit: int = 5) -> list[dict]:
+        """Fetch recent clipboard entries."""
+        return await self._fetch("SELECT id, content, timestamp FROM clipboard_history ORDER BY id DESC LIMIT ?", (limit,))
+
+    async def save_location(self, latitude: float, longitude: float, provider: str = "gps") -> int:
+        """Log device GPS location."""
+        return await self._execute(
+            "INSERT INTO location_log (latitude, longitude, provider) VALUES (?, ?, ?)",
+            (latitude, longitude, provider),
+        )
+
+    async def get_last_location(self) -> Optional[dict]:
+        """Fetch the most recent logged device location."""
+        rows = await self._fetch("SELECT latitude, longitude, provider, timestamp FROM location_log ORDER BY id DESC LIMIT 1")
+        return rows[0] if rows else None
+
     async def build_context(self, user_message: str) -> tuple[str, list[dict]]:
         """Build system prompt + message history for the LLM.
 
@@ -131,6 +212,51 @@ class MemoryPipeline:
         messages.append({"role": "user", "content": user_message})
 
         return system_prompt, messages
+
+    async def add_custom_command(self, trigger_phrase: str, actions: str) -> int:
+        """Add or update a custom voice command macro."""
+        if not self._conn:
+            return -1
+        cursor = await self._conn.execute(
+            """INSERT INTO custom_commands (trigger_phrase, actions)
+               VALUES (?, ?)
+               ON CONFLICT(trigger_phrase) DO UPDATE SET actions = excluded.actions""",
+            (trigger_phrase.strip().lower(), actions.strip()),
+        )
+        await self._conn.commit()
+        return cursor.lastrowid or 0
+
+    async def get_custom_command(self, trigger_phrase: str) -> Optional[str]:
+        """Fetch action sequence for a custom command trigger phrase."""
+        if not self._conn:
+            return None
+        cursor = await self._conn.execute(
+            "SELECT actions FROM custom_commands WHERE trigger_phrase = ?",
+            (trigger_phrase.strip().lower(),),
+        )
+        row = await cursor.fetchone()
+        return row[0] if row else None
+
+    async def list_custom_commands(self) -> list[dict]:
+        """List all custom voice commands."""
+        if not self._conn:
+            return []
+        cursor = await self._conn.execute(
+            "SELECT trigger_phrase, actions FROM custom_commands ORDER BY trigger_phrase"
+        )
+        rows = await cursor.fetchall()
+        return [{"trigger_phrase": r[0], "actions": r[1]} for r in rows]
+
+    async def delete_custom_command(self, trigger_phrase: str) -> bool:
+        """Delete a custom voice command."""
+        if not self._conn:
+            return False
+        cursor = await self._conn.execute(
+            "DELETE FROM custom_commands WHERE trigger_phrase = ?",
+            (trigger_phrase.strip().lower(),),
+        )
+        await self._conn.commit()
+        return cursor.rowcount > 0
 
     async def close(self) -> None:
         """Close database connection."""

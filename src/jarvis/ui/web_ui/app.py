@@ -16,14 +16,20 @@ from jarvis.core.intent import classify_intent
 app = Flask(__name__)
 
 # In-memory engine reference (set externally)
-_engine_ref: Any = None
-_last_response: str = ""
+_engine_loop: Optional[asyncio.AbstractEventLoop] = None
 
 
 def set_engine(engine: Any) -> None:
     """Set the engine reference for live state reading."""
-    global _engine_ref
+    global _engine_ref, _engine_loop
     _engine_ref = engine
+    try:
+        _engine_loop = asyncio.get_running_loop()
+    except RuntimeError:
+        try:
+            _engine_loop = asyncio.get_event_loop()
+        except RuntimeError:
+            _engine_loop = None
 
 
 def _build_state() -> BrainState:
@@ -42,6 +48,11 @@ def _build_state() -> BrainState:
         "broca": eng_state in ("speaking",),
         "motor": eng_state in ("processing",),
         "hippocampus": True,
+        "occipital": eng_state in ("processing",),
+        "somatosensory": True,
+        "defense": eng_state in ("processing",),
+        "thalamus": eng_state in ("processing",),
+        "cerebellum": True,
     }
 
     latencies = {
@@ -51,6 +62,11 @@ def _build_state() -> BrainState:
         "broca": 800.0 if region_active["broca"] else 0.0,
         "motor": 50.0 if region_active["motor"] else 0.0,
         "hippocampus": 3.0,
+        "occipital": 150.0 if region_active["occipital"] else 0.0,
+        "somatosensory": 10.0,
+        "defense": 80.0 if region_active["defense"] else 0.0,
+        "thalamus": 200.0 if region_active["thalamus"] else 0.0,
+        "cerebellum": 5.0,
     }
 
     for key, info in COLORS.items():
@@ -69,13 +85,18 @@ def _build_state() -> BrainState:
     if region_active["wernicke"]:
         pathways.append(("Wernicke", "Broca"))
         pathways.append(("Wernicke", "Hippocampus"))
+        pathways.append(("Wernicke", "Thalamus"))
     if region_active["motor"]:
         pathways.append(("PFC", "Motor"))
+    if region_active["occipital"]:
+        pathways.append(("Occipital", "PFC"))
+    if region_active["defense"]:
+        pathways.append(("PFC", "Defense"))
     state.active_pathways = pathways
 
     active_count = sum(1 for v in region_active.values() if v)
-    state.neural_activity_pct = (active_count / 6) * 100
-    state.cortex_health = "OPTIMAL" if active_count <= 4 else "HIGH LOAD"
+    state.neural_activity_pct = (active_count / 11) * 100
+    state.cortex_health = "OPTIMAL" if active_count <= 8 else "HIGH LOAD"
     state.total_synapses = len(pathways)
 
     return state
@@ -120,7 +141,11 @@ def handle_command() -> Response:
     if _engine_ref and hasattr(_engine_ref, 'process'):
         import asyncio
         try:
-            response = asyncio.run(_engine_ref.process(command))
+            if _engine_loop and _engine_loop.is_running():
+                future = asyncio.run_coroutine_threadsafe(_engine_ref.process(command), _engine_loop)
+                response = future.result(timeout=30)
+            else:
+                response = asyncio.run(_engine_ref.process(command))
             _last_response = response
             return jsonify({"response": response})
         except Exception as e:

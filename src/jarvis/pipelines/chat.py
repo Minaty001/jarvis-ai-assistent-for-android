@@ -23,16 +23,18 @@ class ChatPipeline:
         self.timeout = app_config.groq_timeout
         self._client: Any = None
 
-    async def generate(self, messages: list[dict]) -> Optional[str]:
-        """Send messages to Groq and return the response.
+    async def generate(self, messages: list[dict], tools: list[dict] | None = None) -> Optional[dict | str]:
+        """Send messages to Groq and return response string or dict with tool calls.
 
         Args:
             messages: List of message dicts with 'role' and 'content' keys.
+            tools: Optional list of OpenAI-compatible tool spec dicts.
 
         Returns:
-            Response text string, or None on failure.
+            Response string or dict containing 'content' and optional 'tool_calls'.
         """
-        if not self.api_key:
+        api_key = app_config.groq_api_key or self.api_key
+        if not api_key:
             log.error("GROQ_API_KEY not set.")
             return None
 
@@ -42,7 +44,7 @@ class ChatPipeline:
                 self._client = httpx.AsyncClient(
                     timeout=self.timeout,
                     headers={
-                        "Authorization": f"Bearer {self.api_key}",
+                        "Authorization": f"Bearer {api_key}",
                         "Content-Type": "application/json",
                     },
                 )
@@ -50,13 +52,15 @@ class ChatPipeline:
                 log.warning("httpx not installed. Chat pipeline unavailable.")
                 return None
 
-        payload = {
+        payload: dict[str, Any] = {
             "model": self.model,
             "messages": messages,
             "temperature": 0.7,
             "max_tokens": 512,
             "stream": False,
         }
+        if tools:
+            payload["tools"] = tools
 
         for attempt in range(2):
             try:
@@ -70,7 +74,12 @@ class ChatPipeline:
                     continue
                 resp.raise_for_status()
                 data = resp.json()
-                return data["choices"][0]["message"]["content"].strip()
+                msg = data["choices"][0]["message"]
+                content = msg.get("content", "") or ""
+                tool_calls = msg.get("tool_calls")
+                if tool_calls:
+                    return {"content": content.strip(), "tool_calls": tool_calls}
+                return content.strip()
             except Exception as e:
                 log.error(f"Groq API error (attempt {attempt + 1}): {e}")
                 if attempt == 0:

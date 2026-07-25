@@ -50,12 +50,19 @@ Existing Android assistants are closed, cloud-dependent, or not extensible. User
 - Context injection into LLM prompts
 
 ### 4.4 Real-time Brain Visualization
-- Terminal TUI (curses) showing 6 cortical regions with activity glow
+- Terminal TUI (curses) showing 11 cortical regions with activity glow
 - Web UI (Flask) with live SSE updates and canvas-based brain map
 - Neural pathway animation during processing
 - Per-region latency, activity %, synapse count, cortex health
 
-### 4.5 Graceful Degradation
+### 4.5 Stark MCU Tactical & Sensory Capabilities
+- **Named Security Protocols:** Execute automated tactical routines (`House Party Protocol`, `Stealth Mode`, `Protocol Alpha`, `Lockdown`, `Overdrive`).
+- **Visual Intelligence:** Photo capture and optical target analysis via `termux-camera-photo`.
+- **System Telemetry:** Real-time diagnostics monitoring CPU load average, RAM utilization, storage space, and battery status.
+- **Web Intelligence & Live Weather:** Instant weather telemetry (Open-Meteo / wttr.in) and real-time DuckDuckGo web search summaries.
+- **Async Countdown Scheduler:** Active countdown timers with async completion callbacks.
+
+### 4.6 Graceful Degradation
 No single component failure crashes the assistant:
 - No Groq key → text-only input with informative error
 - No Piper → edge-tts (free cloud TTS), then Android TTS fallback
@@ -75,6 +82,11 @@ No single component failure crashes the assistant:
 | US6 | As a user, I want to see the assistant's internal state in a visual brain UI. |
 | US7 | As a user, I want to type commands when voice is not available. |
 | US8 | As a user, I want the assistant to keep working even if one component fails. |
+| US9 | As a user, I want to say "execute house party protocol" to run a security & resource cleanup protocol. |
+| US10 | As a user, I want to ask "suit status" or "system diagnostics" to view real-time CPU, RAM, and battery telemetry. |
+| US11 | As a user, I want to ask "what's the weather" to get live weather telemetry. |
+| US12 | As a user, I want to set countdown timers and be alerted when they expire. |
+| US13 | As a user, I want to take a visual snapshot to inspect images and visual targets hands-free. |
 
 ## 6. Non-Goals
 

@@ -9,6 +9,25 @@ from __future__ import annotations
 import re
 
 _INTENT_PATTERNS: list[tuple[str, str, list[str]]] = [
+    ("add_custom_cmd", r"^(?:create|add|set)\s+(?:custom\s+command|shortcut)\s+['\"]?(.+?)['\"]?\s+(?:to|that|and)\s+(.+)", ["trigger_phrase", "actions"]),
+    ("list_custom_cmds", r"^(?:list|show|view)\s+(?:my\s+)?custom\s+commands", []),
+    ("delete_custom_cmd", r"^(?:delete|remove)\s+custom\s+command\s+['\"]?(.+?)['\"]?$", ["trigger_phrase"]),
+    ("copy_clipboard", r"^(?:copy|copy\s+to\s+clipboard)\s+(.+)", ["text"]),
+    ("get_clipboard", r"^(?:get|read|show|check)\s+(?:the\s+)?clipboard", []),
+    ("vibrate_phone", r"^(?:vibrate|vibrate\s+device|buzz|buzz\s+phone)", []),
+    ("show_toast_msg", r"^(?:show\s+toast|toast|popup)\s+(.+)", ["message"]),
+    ("get_gps_location", r"^(?:where\s+am\s+i|my\s+location|gps\s+location|current\s+location)", []),
+    ("media_control", r"^(?:media\s+|music\s+)?(play|pause|next|previous|stop)(?:\s+track|\s+song)?", ["action"]),
+    ("make_phone_call", r"^(?:make\s+a\s+)?(?:call|phone|dial)\s+(.+)", ["number"]),
+    ("send_sms_msg", r"^(?:send\s+sms|send\s+text|text)\s+(?:to\s+)?(\d+|\w+)\s+(?:saying|with|that)\s+(.+)", ["number", "message"]),
+    ("tell_weather", r"(?:what(?:\'s|\s+is)\s+)?(?:the\s+)?weather(?:\s+in\s+(.+))?", ["location"]),
+    ("system_telemetry", r"(?:system\s+status|suit\s+status|diagnostics|telemetry|system\s+diagnostics|health\s+check|system\s+health)", []),
+    ("run_protocol", r"(?:initiate|execute|engage|run|start)\s+(?:protocol\s+)?(house\s+party|stealth\s+mode|stealth|lockdown|protocol\s+alpha|clean\s+sweep|overdrive)(?:\s+protocol)?", ["protocol_name"]),
+    ("set_timer", r"(?:set|start|create)\s+(?:a\s+)?timer\s+(?:for\s+)?(\d+)\s*(seconds?|secs?|minutes?|mins?)(?:\s+(?:for|called|labeled)\s+(.+))?", ["duration", "unit", "label"]),
+    ("view_timers", r"(?:show|view|list|check)\s+(?:my\s+)?timers", []),
+    ("cancel_timer", r"(?:cancel|stop|delete)\s+(?:the\s+)?timer\s*(.*)", ["query"]),
+    ("scan_vision", r"(?:take\s+a\s+photo|scan\s+environment|take\s+picture|visual\s+scan|inspect\s+camera|look\s+at\s+this)", []),
+    ("web_search_intel", r"(?:intelligence\s+search|search\s+intel|live\s+search)\s+(.+)", ["query"]),
     ("open_settings", r"(?:open|launch)\s+(?:the\s+)?settings", []),
     ("open_camera", r"(?:open|launch)\s+(?:the\s+)?camera", []),
     ("open_gallery", r"(?:open|launch)\s+(?:the\s+)?gallery", []),
@@ -45,10 +64,11 @@ _INTENT_PATTERNS: list[tuple[str, str, list[str]]] = [
     ("play_music", r"(?:play|search)\s+(?:music|song|audio)\s+(.+)|play\s+(.+)", ["query"]),
     ("take_note", r"(?:take|make|create|write|save)\s+(?:a\s+)?note\s+(?:that\s+)?(.+)", ["content"]),
     ("read_notes", r"(?:read|show|list|view)\s+(?:my\s+)?notes", []),
-    ("delete_note", r"(?:delete|remove|erase)\s+(?:note\s+)?(.+)", ["query"]),
     ("set_reminder", r"(?:set|create|make)\s+(?:a\s+)?reminder\s+(?:to\s+)?(.+)", ["text"]),
     ("view_reminders", r"(?:view|show|list)\s+(?:my\s+)?reminders", []),
-    ("delete_reminder", r"(?:delete|remove|clear)\s+(?:reminder\s+)?(.+)", ["query"]),
+    ("delete_reminder", r"(?:delete|remove|clear)\s+(?:a\s+)?reminder\s+(?:to\s+)?(.+)", ["query"]),
+    ("delete_note", r"(?:delete|remove|erase)\s+(?:a\s+)?note\s+(?:that\s+)?(.+)", ["query"]),
+    ("delete_note", r"(?:delete|remove|erase)\s+(.+)", ["query"]),
     ("calculate", r"(?:calculate|compute)\s+(.+)", ["expression"]),
     ("remember_fact", r"(?:remember|note|remember\s+that|keep\s+in\s+mind)\s+(?:that\s+)?(.+)", ["fact"]),
     ("what_is", r"what(?:\'s| is)\s+(?:my\s+|the\s+)?(.+)", ["query"]),
@@ -101,6 +121,19 @@ def classify_intent(text: str) -> tuple[str, dict[str, str]]:
                 parts = fact.split(":", 1)
                 params["key"] = parts[0].strip()
                 params["value"] = parts[1].strip()
+            elif " is " in fact:
+                parts = fact.split(" is ", 1)
+                params["key"] = parts[0].strip()
+                params["value"] = parts[1].strip()
+            else:
+                params["key"] = fact
+                params["value"] = fact
+            if "key" in params:
+                params["key"] = re.sub(r"^my\s+", "", params["key"], flags=re.IGNORECASE).strip()
+        elif intent == "what_is" and "query" in params:
+            q = params["query"].strip()
+            if re.match(r"^[\d\s\+\-\*\/\(\)\.\^%]+$", q) and any(c in q for c in "+-*/^%"):
+                return "calculate", {"expression": q}
 
         return intent, params
 
