@@ -13,6 +13,7 @@ import json
 from datetime import datetime
 from typing import Optional
 
+import shutil
 from jarvis.utils.logging import log
 
 
@@ -20,10 +21,19 @@ class DevicePipeline:
     """Async wrapper around Termux-API and Android commands."""
 
     def __init__(self) -> None:
-        pass
+        self._available_bins: dict[str, bool] = {}
 
     async def _run(self, *args: str, input_data: Optional[str] = None) -> str:
         """Run a subprocess asynchronously and return stdout."""
+        if not args:
+            return "ERROR: Empty command"
+        cmd_name = args[0]
+        if cmd_name not in self._available_bins:
+            self._available_bins[cmd_name] = shutil.which(cmd_name) is not None
+
+        if not self._available_bins[cmd_name]:
+            log.warning(f"Command '{cmd_name}' not available on system.")
+            return f"ERROR: '{cmd_name}' is not installed or available."
         try:
             proc = await asyncio.create_subprocess_exec(
                 *args,
