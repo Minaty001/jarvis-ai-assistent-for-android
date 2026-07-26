@@ -61,24 +61,18 @@ def _find_audio_capture() -> str | None:
     return None
 
 
+import io
+
+
 def _wav_bytes(raw_data: bytes, sample_rate: int, nchannels: int = 1, sampwidth: int = 2) -> bytes:
     """Wrap raw PCM bytes in WAV container, return WAV bytes."""
-    buf = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
-    filename = buf.name
-    buf.close()
-    try:
-        with wave.open(filename, "wb") as wf:
-            wf.setnchannels(nchannels)
-            wf.setsampwidth(sampwidth)
-            wf.setframerate(sample_rate)
-            wf.writeframes(raw_data)
-        with open(filename, "rb") as f:
-            return f.read()
-    finally:
-        try:
-            os.unlink(filename)
-        except Exception:
-            pass
+    buf = io.BytesIO()
+    with wave.open(buf, "wb") as wf:
+        wf.setnchannels(nchannels)
+        wf.setsampwidth(sampwidth)
+        wf.setframerate(sample_rate)
+        wf.writeframes(raw_data)
+    return buf.getvalue()
 
 
 

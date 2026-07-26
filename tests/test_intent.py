@@ -206,3 +206,13 @@ class TestIntentClassifier:
         assert params["duration"] == "10"
         assert "min" in params.get("unit", "")
         assert "coffee break" in params.get("label", "")
+
+    def test_intent_no_false_positives(self):
+        intent1, _ = classify_intent("i made a sandwich")
+        assert intent1 == "general_chat"
+
+        intent2, _ = classify_intent("we built a nice house")
+        assert intent2 == "general_chat"
+
+        intent3, _ = classify_intent("i like warm weather in summer")
+        assert intent3 == "general_chat"

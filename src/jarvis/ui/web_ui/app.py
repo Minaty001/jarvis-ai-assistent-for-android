@@ -144,11 +144,24 @@ def handle_command() -> Response:
     if _engine_ref and hasattr(_engine_ref, 'process'):
         import asyncio
         try:
-            if _engine_loop and _engine_loop.is_running():
-                future = asyncio.run_coroutine_threadsafe(_engine_ref.process(command), _engine_loop)
+            target_loop = _engine_loop if (_engine_loop and _engine_loop.is_running()) else None
+            if not target_loop:
+                try:
+                    target_loop = asyncio.get_running_loop()
+                except RuntimeError:
+                    target_loop = None
+
+            if target_loop and target_loop.is_running():
+                future = asyncio.run_coroutine_threadsafe(_engine_ref.process(command), target_loop)
                 response = future.result(timeout=30)
             else:
-                response = asyncio.run(_engine_ref.process(command))
+                new_loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(new_loop)
+                try:
+                    response = new_loop.run_until_complete(_engine_ref.process(command))
+                finally:
+                    new_loop.close()
+
             _last_response = response
             return jsonify({"response": response})
         except Exception as e:

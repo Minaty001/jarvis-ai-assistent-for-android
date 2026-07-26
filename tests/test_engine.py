@@ -112,8 +112,9 @@ async def test_export_conversation(monkeypatch, tmp_path):
     await engine.memory.save_exchange("user", "What's the weather?")
 
     export_path = tmp_path / "exports" / "test_export.txt"
-    result_path = await engine.memory.export_conversation(export_path)
+    result_path, count = await engine.memory.export_conversation(export_path)
     assert result_path == str(export_path.resolve())
+    assert count == 3
     assert export_path.exists()
 
     content = export_path.read_text()
@@ -139,7 +140,7 @@ async def test_engine_process_export_conversation(monkeypatch, tmp_path):
 
     result = await engine.process("export conversation")
     assert "exported" in result.lower()
-    assert "sir" in result.lower()
+    assert "2 exchanges archived" in result.lower()
 
     # Check a file was actually written
     exports_dir = Path(engine.config.database_path).parent / "exports"
@@ -159,5 +160,8 @@ async def test_engine_process_calculate(monkeypatch):
 
     res2 = await engine.process("what is 100 / 4")
     assert "25" in res2
+
+    res3 = await engine.process("calculate 9**9**9**9")
+    assert "Could not calculate" in res3 or "out of bounds" in res3
 
     await engine.shutdown()

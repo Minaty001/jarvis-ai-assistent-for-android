@@ -135,10 +135,11 @@ async def test_export_conversation(mem, tmp_path):
     await mem.save_exchange("user", "Set a timer")
 
     export_file = tmp_path / "chat_export.txt"
-    result_path = await mem.export_conversation(export_file)
+    result_path, count = await mem.export_conversation(export_file)
 
     assert export_file.exists()
     assert result_path == str(export_file.resolve())
+    assert count == 3
     content = export_file.read_text()
     assert "Conversation Export" in content
     assert "Hello" in content

@@ -47,8 +47,14 @@ def _safe_eval_expr(expr: str) -> str:
                 left = _eval(n.left)
                 right = _eval(n.right)
                 op_type = type(n.op)
+                if op_type is ast.Pow:
+                    if abs(left) > 1000 or right > 1000 or right < -1000:
+                        raise ValueError("Exponent or base out of bounds")
                 if op_type in _SAFE_OPERATORS:
-                    return _SAFE_OPERATORS[op_type](left, right)
+                    res = _SAFE_OPERATORS[op_type](left, right)
+                    if isinstance(res, (int, float)) and abs(res) > 1e100:
+                        raise ValueError("Calculation result out of bounds")
+                    return res
             elif isinstance(n, ast.UnaryOp):
                 operand = _eval(n.operand)
                 op_type = type(n.op)
@@ -245,9 +251,9 @@ class Engine:
             export_dir.mkdir(parents=True, exist_ok=True)
             stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             filepath = export_dir / f"conversation_{stamp}.txt"
-            path_str = await self.memory.export_conversation(filepath)
+            path_str, count = await self.memory.export_conversation(filepath)
             self.state = EngineState.IDLE
-            return f"Conversation history exported to {path_str}, sir. All {stamp[-6:]} exchanges archived."
+            return f"Conversation history exported to {path_str}, sir. All {count} exchanges archived."
 
         if intent == "delete_note":
             query = params.get("query", "")

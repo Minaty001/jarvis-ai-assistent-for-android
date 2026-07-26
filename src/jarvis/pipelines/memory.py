@@ -126,14 +126,14 @@ class MemoryPipeline:
         rows.reverse()
         return rows
 
-    async def export_conversation(self, filepath: str | Path) -> str:
+    async def export_conversation(self, filepath: str | Path) -> tuple[str, int]:
         """Export full conversation history to a formatted text file.
 
         Args:
             filepath: Destination path for the export file.
 
         Returns:
-            Absolute path string of the written file.
+            Tuple of (absolute_path_string, total_exchanges_count).
         """
         rows = await self._fetch(
             "SELECT role, content, timestamp, session_id FROM conversation ORDER BY id ASC"
@@ -161,7 +161,7 @@ class MemoryPipeline:
             lines.append("")
 
         path.write_text("\n".join(lines), encoding="utf-8")
-        return str(path.resolve())
+        return str(path.resolve()), len(rows)
 
     async def remember(self, key: str, value: str) -> None:
         """Store or update a user fact."""
