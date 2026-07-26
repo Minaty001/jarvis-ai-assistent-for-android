@@ -15,7 +15,10 @@ import subprocess
 import tempfile
 from typing import Optional
 
-import edge_tts
+try:
+    import edge_tts
+except ImportError:  # pragma: no cover - exercised in subprocess import tests
+    edge_tts = None
 
 from jarvis.core.config import config as app_config
 from jarvis.utils.logging import log
@@ -92,6 +95,10 @@ class VoicePipeline:
 
     async def _try_edge_tts(self, text: str) -> bool:
         """Fallback: use edge-tts (Microsoft Edge free TTS) via paplay."""
+        if edge_tts is None:
+            log.debug("edge-tts is not installed. Skipping cloud TTS fallback.")
+            return False
+
         paplay = shutil.which("paplay")
         if not paplay:
             return False
