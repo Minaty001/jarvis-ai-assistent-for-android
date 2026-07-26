@@ -112,3 +112,34 @@ async def test_engine_process_calculate(monkeypatch):
     assert "25" in res2
 
     await engine.shutdown()
+
+
+@pytest.mark.asyncio
+async def test_engine_process_empty_query_safeguards(monkeypatch, tmp_path):
+    monkeypatch.setenv("GROQ_API_KEY", "test-key")
+    engine = Engine()
+    engine.config.database_path = str(tmp_path / "safeguards_test.db")
+    await engine.initialize()
+
+    await engine.process("take a note test note")
+    await engine.process("set a reminder test reminder")
+
+    res_note = await engine.process("delete note ")
+    assert "specify a query" in res_note.lower()
+
+    res_rem = await engine.process("delete reminder ")
+    assert "specify a query" in res_rem.lower()
+
+    res_cmd = await engine.process("delete custom command ")
+    assert "specify a custom command" in res_cmd.lower()
+
+    res_timer = await engine.process("cancel timer ")
+    assert "specify a timer" in res_timer.lower()
+
+    # Verify notes and reminders were NOT deleted
+    notes = await engine.memory.get_notes()
+    assert len(notes) == 1
+    rems = await engine.memory.get_reminders()
+    assert len(rems) == 1
+
+    await engine.shutdown()
