@@ -68,6 +68,39 @@ User reminders.
 | `done` | INTEGER DEFAULT 0 | 0 = pending, 1 = completed |
 | `timestamp` | TEXT DEFAULT `datetime('now')` | Creation timestamp |
 
+### `clipboard_history`
+
+Android system clipboard text history log.
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | INTEGER PK AUTOINCREMENT | Row ID |
+| `content` | TEXT | Clipboard text content |
+| `timestamp` | TEXT DEFAULT `datetime('now')` | ISO-8601 timestamp |
+
+### `location_log`
+
+Device GPS/IP location telemetry history.
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | INTEGER PK AUTOINCREMENT | Row ID |
+| `latitude` | REAL | Latitude coordinate |
+| `longitude` | REAL | Longitude coordinate |
+| `provider` | TEXT DEFAULT `'gps'` | Provider ('gps' or 'network') |
+| `timestamp` | TEXT DEFAULT `datetime('now')` | ISO-8601 timestamp |
+
+### `custom_commands`
+
+User-defined persistent custom voice command macros.
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | INTEGER PK AUTOINCREMENT | Row ID |
+| `trigger_phrase` | TEXT UNIQUE | Spoken trigger phrase (lowercase) |
+| `actions` | TEXT | Underlying action sequence to execute |
+| `created_at` | TEXT DEFAULT `datetime('now')` | Creation timestamp |
+
 ## API
 
 ```python
@@ -89,6 +122,30 @@ class MemoryPipeline:
 
     async def get_facts() -> str
     """Return all stored facts as a formatted string for LLM prompts."""
+
+    async def save_clipboard(content: str) -> int
+    """Save copied text into clipboard_history."""
+
+    async def get_recent_clipboard(limit: int = 5) -> list[dict]
+    """Retrieve recent copied clipboard items."""
+
+    async def save_location(latitude: float, longitude: float, provider: str = "gps") -> int
+    """Log current device location coordinates."""
+
+    async def get_last_location() -> dict | None
+    """Retrieve last known device location entry."""
+
+    async def add_custom_command(trigger_phrase: str, actions: str) -> int
+    """Add or update a custom voice command macro."""
+
+    async def get_custom_command(trigger_phrase: str) -> str | None
+    """Fetch action sequence for a custom command trigger phrase."""
+
+    async def list_custom_commands() -> list[dict]
+    """List all custom voice commands."""
+
+    async def delete_custom_command(trigger_phrase: str) -> bool
+    """Delete a custom voice command by trigger phrase."""
 
     async def build_context(user_message: str) -> tuple[str, list[dict]]
     """Build system prompt with facts + message history for the LLM."""

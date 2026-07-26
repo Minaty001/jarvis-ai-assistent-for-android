@@ -45,16 +45,19 @@ User: "Hey Jarvis, open the camera"
 |-------|-----------|---------|
 | Runtime | Python 3.14 (Termux on aarch64) | Interpreter |
 | STT | Groq Whisper API (`whisper-large-v3`) | Speech-to-text |
-| LLM | Groq API (`llama-3.1-8b-instant`) | Language model |
+| LLM | Groq API (`llama-3.1-8b-instant`) | Language model & tool calls |
+| Tool Calling | OpenAI JSON Tool Schemas (`tools.py`) | Function calling engine |
+| Audio FX | Pure PCM wave synthesizer (`audio_fx.py`) | Multi-modal sci-fi HUD sound effects |
+| Autonomy | Background task monitor (`autonomy.py`) | Proactive health & power grid battery alerts |
 | TTS | Piper (local) / edge-tts (cloud) / termux-tts-speak | Speech synthesis |
-| Device API | termux-api subprocess calls | Android hardware control |
-| Database | SQLite via aiosqlite | Persistence |
+| Device API | termux-api subprocess calls (cached) | Android hardware & ergonomic control |
+| Database | SQLite via aiosqlite | Persistence (conversations, facts, clipboard, location, macros) |
 | HTTP | httpx (async) | LLM + STT API client |
 | Audio | sounddevice + numpy (optional) | Microphone capture |
-| Terminal UI | curses (stdlib) | Brain visualisation |
-| Web UI | Flask | Browser interface |
+| Terminal UI | curses (stdlib) | 11-region brain visualization |
+| Web UI | Flask + SSE + HTML5 Canvas | 11-region arc reactor visualizer |
 | Config | python-dotenv | Environment loading |
-| Testing | pytest + pytest-asyncio | Test suite |
+| Testing | pytest + pytest-asyncio | Test suite (88 test cases) |
 
 ## 5. Folder Structure
 
@@ -62,6 +65,7 @@ User: "Hey Jarvis, open the camera"
 jarvis-ai-assistent-for-android/
 ├── pyproject.toml               # Project metadata & dependencies
 ├── README.md
+├── LICENSE                      # MIT License
 ├── .env.example                 # Configuration template
 ├── docs/
 │   ├── PRD.md                   # Project requirements document
@@ -77,33 +81,51 @@ jarvis-ai-assistent-for-android/
 │       ├── core/
 │       │   ├── config.py        # .env config loader
 │       │   ├── intent.py        # Rule-based intent classifier
+│       │   ├── tools.py         # LLM function calling registry & tool specs
 │       │   └── engine.py        # Lightweight orchestrator
 │       ├── pipelines/
 │       │   ├── speech.py        # Groq Whisper STT + wake word
-│       │   ├── chat.py          # Groq LLM client
+│       │   ├── chat.py          # Groq LLM client with function calling
 │       │   ├── voice.py         # Piper / edge-tts / Android TTS
-│       │   ├── device.py        # Termux:API device control
-│       │   └── memory.py        # SQLite storage
+│       │   ├── device.py        # Termux:API device & hardware control
+│       │   ├── memory.py        # SQLite storage (conversations, facts, clipboard, location, custom commands)
+│       │   ├── vision.py        # Visual inspection & camera capture
+│       │   ├── telemetry.py     # System health & diagnostic reporting
+│       │   ├── protocol.py      # Stark security protocol engine
+│       │   ├── search.py        # Live weather & web intelligence
+│       │   ├── scheduler.py     # Async countdown timers
+│       │   ├── autonomy.py      # Proactive background health & battery monitor
+│       │   └── audio_fx.py      # Multi-modal PCM sound effect synthesizer
 │       ├── ui/
-│       │   ├── brain_renderer.py  # Brain SVG/ASCII renderer
+│       │   ├── brain_renderer.py  # 11-region brain visualization engine
 │       │   ├── tui.py             # Curses terminal UI
 │       │   └── web_ui/
 │       │       ├── app.py        # Flask server
-│       │       ├── static/brain.js
+│       │       ├── static/brain.js # 11-region arc reactor canvas renderer
 │       │       └── templates/index.html
 │       └── utils/
 │           └── logging.py       # Logger setup
 ├── tests/
-│   ├── test_speech.py
+│   ├── test_android_mobile.py
+│   ├── test_audio_fx.py
+│   ├── test_autonomy.py
 │   ├── test_chat.py
-│   ├── test_voice.py
+│   ├── test_config.py
+│   ├── test_custom_commands.py
 │   ├── test_device.py
-│   ├── test_memory.py
+│   ├── test_engine.py
 │   ├── test_intent.py
-│   └── test_engine.py
+│   ├── test_jarvis_mcu.py
+│   ├── test_memory.py
+│   ├── test_protocol.py
+│   ├── test_scheduler.py
+│   ├── test_search.py
+│   ├── test_speech.py
+│   ├── test_telemetry.py
+│   ├── test_tools.py
+│   ├── test_vision.py
+│   └── test_voice.py
 ├── data/                        # SQLite database (created at runtime)
-├── models/                      # (Legacy — Vosk model no longer required)
-├── voices/                      # Piper TTS voice models (optional)
 └── logs/                        # Log output
 ```
 
@@ -119,9 +141,9 @@ The engine transitions through states as a voice turn progresses. If the speech 
 
 ## 7. Intent Classification
 
-The intent classifier (`core/intent.py`) is a rule-based regex matcher. It runs **before** the LLM call so that simple device commands bypass the LLM entirely for low latency. Unmatched input falls through to `general_chat` which hits the LLM.
+The intent classifier (`core/intent.py`) is a rule-based regex matcher. It runs **before** the LLM call so that simple device commands bypass the LLM entirely for low latency. Unmatched input falls through to `general_chat` which hits the LLM with tool calling specs (`tools.py`).
 
-**Supported intents:** open_settings, open_camera, open_gallery, open_youtube, open_website, open_app, close_app, go_home, show_recent, show_notifications, flashlight_on/off, volume_up/down, set_volume, brightness_up/down, set_brightness, tell_time, tell_date, battery_status, wifi_on/off, wifi_status, bluetooth_on/off, search_google, play_music, take_note, read_notes, delete_note, set_reminder, view_reminders, delete_reminder, calculate, remember_fact, what_is, who_created, tell_weather, system_telemetry, run_protocol, set_timer, view_timers, cancel_timer, scan_vision, web_search_intel, exit, general_chat.
+**Supported intents:** open_settings, open_camera, open_gallery, open_youtube, open_website, open_app, close_app, go_home, show_recent, show_notifications, flashlight_on/off, volume_up/down, set_volume, brightness_up/down, set_brightness, tell_time, tell_date, battery_status, wifi_on/off, wifi_status, bluetooth_on/off, search_google, play_music, take_note, read_notes, delete_note, set_reminder, view_reminders, delete_reminder, calculate, remember_fact, what_is, who_created, tell_weather, system_telemetry, run_protocol, set_timer, view_timers, cancel_timer, scan_vision, web_search_intel, copy_clipboard, get_clipboard, vibrate_phone, show_toast_msg, get_gps_location, media_control, make_phone_call, send_sms_msg, add_custom_cmd, list_custom_cmds, delete_custom_cmd, exit, general_chat.
 
 ## 8. Graceful Degradation
 

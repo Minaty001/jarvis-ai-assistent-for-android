@@ -62,7 +62,21 @@ Existing Android assistants are closed, cloud-dependent, or not extensible. User
 - **Web Intelligence & Live Weather:** Instant weather telemetry (Open-Meteo / wttr.in) and real-time DuckDuckGo web search summaries.
 - **Async Countdown Scheduler:** Active countdown timers with async completion callbacks.
 
-### 4.6 Graceful Degradation
+### 4.6 Android Native Mobile Ergonomics
+- **Clipboard Management:** Copy generated answers or read clipboard contents via `termux-clipboard-set` and `termux-clipboard-get`.
+- **Haptic Vibration Feedback:** Physical device buzzes via `termux-vibrate`.
+- **Android Toast Overlays:** Non-intrusive popup notifications rendered over active Android apps via `termux-toast`.
+- **GPS & Location Telemetry:** Query real-time GPS coordinates via `termux-location`.
+- **Telephony & Direct SMS:** Direct phone dialing and text message dispatch via `termux-telephony-call` and `termux-sms-send`.
+- **Media Hardware Controls:** Playback controls (`play`, `pause`, `next`, `previous`, `stop`).
+
+### 4.7 Custom Voice Commands & Dynamic Tool Calling
+- **Custom Macro Shortcuts:** Create persistent voice shortcuts (`"add custom command 'morning briefing' to tell weather and get system diagnostics"`).
+- **LLM Function Calling Engine:** OpenAI-compatible JSON tool specifications (`tools.py`) dynamically invoked by Groq LLM during conversational reasoning.
+- **Synthesized Audio FX Pipeline:** Zero-dependency sci-fi sound effects (`wake`, `protocol`, `success`, `warning`) generated via standard PCM wave synthesis.
+- **Proactive Background Autonomy:** Periodic telemetry monitoring with automated voice alerts when battery power drops below 15% (`autonomy.py`).
+
+### 4.8 Graceful Degradation
 No single component failure crashes the assistant:
 - No Groq key → text-only input with informative error
 - No Piper → edge-tts (free cloud TTS), then Android TTS fallback
@@ -87,6 +101,11 @@ No single component failure crashes the assistant:
 | US11 | As a user, I want to ask "what's the weather" to get live weather telemetry. |
 | US12 | As a user, I want to set countdown timers and be alerted when they expire. |
 | US13 | As a user, I want to take a visual snapshot to inspect images and visual targets hands-free. |
+| US14 | As a user, I want to copy output text to my clipboard or read copied text with "copy text" and "read clipboard". |
+| US15 | As a user, I want to vibrate the device or show toast popups on my Android screen. |
+| US16 | As a user, I want to define custom voice command shortcuts (e.g. "morning briefing") that execute macro actions. |
+| US17 | As a user, I want to hear high-tech audio sound effects on wake word detection and protocol execution. |
+| US18 | As a user, I want proactive background warnings when my phone battery drops low. |
 
 ## 6. Non-Goals
 
