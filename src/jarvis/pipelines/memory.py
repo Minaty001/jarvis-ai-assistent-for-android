@@ -137,9 +137,12 @@ class MemoryPipeline:
 
     async def delete_note(self, query: str) -> bool:
         """Delete note(s) matching title or content query."""
+        if not self._conn or not query or not query.strip():
+            return False
+        q = query.lower().strip()
         cur = await self._conn.execute(
             "DELETE FROM notes WHERE LOWER(title) LIKE ? OR LOWER(content) LIKE ?",
-            (f"%{query.lower().strip()}%", f"%{query.lower().strip()}%"),
+            (f"%{q}%", f"%{q}%"),
         )
         await self._conn.commit()
         return cur.rowcount > 0
@@ -157,9 +160,12 @@ class MemoryPipeline:
 
     async def delete_reminder(self, query: str) -> bool:
         """Delete reminder(s) matching text query or set done."""
+        if not self._conn or not query or not query.strip():
+            return False
+        q = query.lower().strip()
         cur = await self._conn.execute(
             "DELETE FROM reminders WHERE LOWER(text) LIKE ?",
-            (f"%{query.lower().strip()}%",),
+            (f"%{q}%",),
         )
         await self._conn.commit()
         return cur.rowcount > 0
@@ -249,7 +255,7 @@ class MemoryPipeline:
 
     async def delete_custom_command(self, trigger_phrase: str) -> bool:
         """Delete a custom voice command."""
-        if not self._conn:
+        if not self._conn or not trigger_phrase or not trigger_phrase.strip():
             return False
         cursor = await self._conn.execute(
             "DELETE FROM custom_commands WHERE trigger_phrase = ?",

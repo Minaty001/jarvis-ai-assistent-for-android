@@ -86,9 +86,12 @@ class SchedulerPipeline:
 
     async def cancel_timer(self, query: str) -> bool:
         """Cancel timer(s) matching query string."""
+        if not query or not query.strip():
+            return False
         cancelled = False
+        q = query.lower().strip()
         for tid, t in list(self.tasks.items()):
-            if not t.completed and (query.lower() in t.label.lower() or query.lower() in tid.lower()):
+            if not t.completed and (q in t.label.lower() or q in tid.lower()):
                 if t._async_task:
                     t._async_task.cancel()
                 t.completed = True

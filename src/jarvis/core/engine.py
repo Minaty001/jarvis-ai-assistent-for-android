@@ -170,7 +170,10 @@ class Engine:
             return "Your notes:\n" + "\n".join(f"- {n['content']}" for n in notes)
 
         if intent == "delete_note":
-            query = params.get("query", "")
+            query = params.get("query", "").strip()
+            if not query or query.lower() in ("note", "a note"):
+                self.state = EngineState.IDLE
+                return "Please specify a query to delete notes."
             deleted = await self.memory.delete_note(query)
             self.state = EngineState.IDLE
             return f"Deleted notes matching '{query}'." if deleted else f"No notes found matching '{query}'."
@@ -189,14 +192,20 @@ class Engine:
             return "Your reminders:\n" + "\n".join(f"- {r['text']}" for r in reminders)
 
         if intent == "delete_reminder":
-            query = params.get("query", "")
+            query = params.get("query", "").strip()
+            if not query or query.lower() in ("reminder", "a reminder"):
+                self.state = EngineState.IDLE
+                return "Please specify a query to delete reminders."
             deleted = await self.memory.delete_reminder(query)
             self.state = EngineState.IDLE
             return f"Deleted reminders matching '{query}'." if deleted else f"No reminders found matching '{query}'."
 
         if intent == "add_custom_cmd":
-            trig = params.get("trigger_phrase", "")
-            act = params.get("actions", "")
+            trig = params.get("trigger_phrase", "").strip()
+            act = params.get("actions", "").strip()
+            if not trig or not act:
+                self.state = EngineState.IDLE
+                return "Please specify both a trigger phrase and actions for the custom command."
             await self.memory.add_custom_command(trig, act)
             self.state = EngineState.IDLE
             return f"Custom voice command '{trig}' created successfully."
@@ -209,7 +218,10 @@ class Engine:
             return "Registered custom commands:\n" + "\n".join(f"- '{c['trigger_phrase']}': {c['actions']}" for c in cmds)
 
         if intent == "delete_custom_cmd":
-            trig = params.get("trigger_phrase", "")
+            trig = params.get("trigger_phrase", "").strip()
+            if not trig or trig.lower() in ("custom command", "a custom command"):
+                self.state = EngineState.IDLE
+                return "Please specify a custom command trigger to delete."
             deleted = await self.memory.delete_custom_command(trig)
             self.state = EngineState.IDLE
             return f"Deleted custom command '{trig}'." if deleted else f"No custom command found for '{trig}'."
@@ -262,7 +274,10 @@ class Engine:
             return "Active timers:\n" + "\n".join(f"- {t['label']}: {t['duration_sec']}s total" for t in timers)
 
         if intent == "cancel_timer":
-            q = params.get("query", "")
+            q = params.get("query", "").strip()
+            if not q or q.lower() in ("timer", "the timer"):
+                self.state = EngineState.IDLE
+                return "Please specify a timer to cancel."
             cancelled = await self.scheduler.cancel_timer(q)
             self.state = EngineState.IDLE
             return f"Cancelled timer matching '{q}', sir." if cancelled else f"No timer found matching '{q}'."
