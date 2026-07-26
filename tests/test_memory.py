@@ -111,3 +111,37 @@ async def test_reminders_crud(mem):
 
     rems_after = await mem.get_reminders()
     assert len(rems_after) == 0
+
+
+@pytest.mark.asyncio
+async def test_delete_note_empty_query_safeguard(mem):
+    await mem.save_note("Groceries", "buy milk")
+    deleted = await mem.delete_note("")
+    assert deleted is False
+    deleted_spaces = await mem.delete_note("   ")
+    assert deleted_spaces is False
+    notes = await mem.get_notes()
+    assert len(notes) == 1
+
+
+@pytest.mark.asyncio
+async def test_delete_reminder_empty_query_safeguard(mem):
+    await mem.save_reminder("Call Doctor")
+    deleted = await mem.delete_reminder("")
+    assert deleted is False
+    deleted_spaces = await mem.delete_reminder("   ")
+    assert deleted_spaces is False
+    rems = await mem.get_reminders()
+    assert len(rems) == 1
+
+
+@pytest.mark.asyncio
+async def test_delete_custom_command_empty_query_safeguard(mem):
+    await mem.add_custom_command("morning", "system_telemetry")
+    deleted = await mem.delete_custom_command("")
+    assert deleted is False
+    deleted_spaces = await mem.delete_custom_command("   ")
+    assert deleted_spaces is False
+    cmds = await mem.list_custom_commands()
+    assert len(cmds) == 1
+

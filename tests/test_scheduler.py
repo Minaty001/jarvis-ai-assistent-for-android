@@ -32,3 +32,15 @@ async def test_timer_completion():
     await asyncio.sleep(0.2)
 
     assert len(completed) == 1
+
+
+@pytest.mark.asyncio
+async def test_cancel_timer_empty_query_safeguard():
+    scheduler = SchedulerPipeline()
+    await scheduler.create_timer("Focus Time", 10.0)
+    cancelled = await scheduler.cancel_timer("")
+    assert cancelled is False
+    cancelled_spaces = await scheduler.cancel_timer("   ")
+    assert cancelled_spaces is False
+    timers = await scheduler.get_active_timers()
+    assert len(timers) == 1
