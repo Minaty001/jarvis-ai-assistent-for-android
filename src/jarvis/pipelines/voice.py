@@ -15,8 +15,6 @@ import subprocess
 import tempfile
 from typing import Optional
 
-import edge_tts
-
 from jarvis.core.config import config as app_config
 from jarvis.utils.logging import log
 
@@ -95,6 +93,11 @@ class VoicePipeline:
         paplay = shutil.which("paplay")
         if not paplay:
             return False
+        try:
+            import edge_tts
+        except ImportError:
+            log.debug("edge_tts not installed — skipping cloud TTS fallback.")
+            return False
         output_path = None
         try:
             with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
@@ -126,11 +129,6 @@ class VoicePipeline:
                         subprocess.run([paplay, path], capture_output=True, timeout=10)
                     except Exception:
                         pass
-        finally:
-            try:
-                os.unlink(path)
-            except Exception:
-                pass
 
     def _find_piper(self) -> Optional[str]:
         candidates = ["piper", os.path.expanduser("~/.local/bin/piper")]

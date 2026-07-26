@@ -121,7 +121,6 @@ def _record_termux_mic(duration: float, sample_rate: int = 16000) -> bytes | Non
 
 def _record_arecord(duration: float, sample_rate: int = 16000) -> bytes | None:
     """Record audio using arecord (ALSA)."""
-    frames = int(duration * sample_rate)
     try:
         proc = subprocess.run(
             ["arecord", "-t", "raw", "-f", "S16_LE", "-r", str(sample_rate),
@@ -188,7 +187,7 @@ class SpeechPipeline:
 
         Returns True if STT is usable (both API key and audio capture available).
         """
-        self._api_key = app_config.groq_api_key or os.getenv("GROQ_API_KEY", "")
+        self._api_key = app_config.groq_api_key
         if not self._api_key:
             log.warning("GROQ_API_KEY not set. STT unavailable.")
             return False

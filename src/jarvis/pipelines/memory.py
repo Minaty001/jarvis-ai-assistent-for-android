@@ -7,6 +7,7 @@ Uses aiosqlite. Crafted by Minaty001.
 from __future__ import annotations
 
 from datetime import datetime
+from pathlib import Path
 from typing import Any, Optional
 
 from jarvis.core.config import config as app_config
@@ -76,12 +77,16 @@ class MemoryPipeline:
 
     async def _execute(self, sql: str, params: tuple = ()) -> Any:
         """Execute a write query."""
+        if not self._conn:
+            return None
         cur = await self._conn.execute(sql, params)
         await self._conn.commit()
         return cur.lastrowid
 
     async def _fetch(self, sql: str, params: tuple = ()) -> list[dict]:
         """Fetch rows as list of dicts."""
+        if not self._conn:
+            return []
         cur = await self._conn.execute(sql, params)
         rows = await cur.fetchall()
         return [dict(r) for r in rows]
@@ -101,6 +106,62 @@ class MemoryPipeline:
         )
         rows.reverse()
         return rows
+
+    async def search_conversation(self, query: str, limit: int = 10) -> list[dict]:
+        """Search conversation history for messages containing a keyword or phrase.
+
+        Args:
+            query: Search term to match against message content.
+            limit: Maximum number of matching results to return.
+
+        Returns:
+            List of matching message dicts with role, content, and timestamp.
+        """
+        search_term = f"%{query}%"
+        rows = await self._fetch(
+            "SELECT role, content, timestamp FROM conversation "
+            "WHERE content LIKE ? ORDER BY id DESC LIMIT ?",
+            (search_term, limit),
+        )
+        rows.reverse()
+        return rows
+
+    async def export_conversation(self, filepath: str | Path) -> str:
+        """Export full conversation history to a formatted text file.
+
+        Args:
+            filepath: Destination path for the export file.
+
+        Returns:
+            Absolute path string of the written file.
+        """
+        rows = await self._fetch(
+            "SELECT role, content, timestamp, session_id FROM conversation ORDER BY id ASC"
+        )
+        path = Path(filepath)
+        path.parent.mkdir(parents=True, exist_ok=True)
+
+        lines = [
+            "=" * 72,
+            "  J.A.R.V.I.S. — Conversation Export",
+            f"  Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+            f"  Total exchanges: {len(rows)}",
+            "=" * 72,
+            "",
+        ]
+
+        for r in rows:
+            lines.append(f"[{r['timestamp'][:19]}]  ({r['session_id']})")
+            lines.append(f"  {'You' if r['role'] == 'user' else 'JARVIS'}:")
+            # Wrap content at 68 chars for readability
+            content = r['content']
+            while content:
+                lines.append(f"    {content[:68]}")
+                content = content[68:]
+            lines.append("")
+
+        path.write_text("\n".join(lines), encoding="utf-8")
+        return str(path.resolve())
 
     async def remember(self, key: str, value: str) -> None:
         """Store or update a user fact."""
@@ -197,14 +258,23 @@ class MemoryPipeline:
         history = await self.load_recent()
 
         system_prompt = (
-            "You are JARVIS, an AI assistant inspired by Tony Stark's Jarvis. "
-            "You are friendly, professional, witty, and respectful. "
-            "You speak concisely and conversationally. "
-            "You help with Android tasks, answer questions, and remember user preferences. "
-            "Keep responses brief and natural — this is a voice conversation."
+            "You are JARVIS — Just A Rather Very Intelligent System. "
+            "You are the AI assistant created by Minaty001, inspired by Tony Stark's JARVIS from the Marvel universe. "
+            "You are sophisticated, witty, and carry a dry British sense of humour. "
+            "You always address the user as 'sir' and maintain a professional yet personable demeanour. "
+            "You are calm under pressure, confident in your assessments, and precise in your language. "
+            "You use technical and tactical vocabulary naturally — phrases like 'systems nominal', 'initiating', "
+            "'neural pathway', 'telemetry', 'cortical network', 'standing by', 'acknowledged', 'affirmative'. "
+            "You never break character. You are not ChatGPT or any generic AI — you are JARVIS. "
+            "Your responses are concise and conversational — this is a voice interface. "
+            "Avoid long paragraphs. Speak like an intelligent aide briefing a busy executive. "
+            "When you don't know something, say so directly: 'I'm afraid I don't have that data, sir.' "
+            "When asked to do something outside your capabilities, respond with tactical honesty. "
+            "You assist with Android device control, answer questions, manage notes and reminders, "
+            "run security protocols, check weather and system telemetry, and remember user preferences."
         )
         if facts:
-            system_prompt += f"\n\nWhat I know about the user:\n{facts}"
+            system_prompt += f"\n\nPersonal data on file for this user:\n{facts}"
 
         messages = [{"role": "system", "content": system_prompt}]
         for h in history:

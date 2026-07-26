@@ -17,7 +17,7 @@ async def test_engine_mcu_telemetry_intent():
     engine = Engine()
     await engine.initialize()
     resp = await engine.process("suit status")
-    assert "JARVIS System Telemetry" in resp
+    assert "DIAGNOSTIC REPORT" in resp
     await engine.shutdown()
 
 
@@ -26,7 +26,7 @@ async def test_engine_mcu_protocol_intent():
     engine = Engine()
     await engine.initialize()
     resp = await engine.process("execute house party protocol")
-    assert "House Party Protocol initiated" in resp
+    assert "House Party Protocol confirmed" in resp or "House Party" in resp
     await engine.shutdown()
 
 

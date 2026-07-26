@@ -4,11 +4,11 @@
 
 The Memory pipeline (`pipelines/memory.py`) provides persistent storage for the Jarvis assistant. It is the **Hippocampus** cortical region — responsible for encoding, storing, and retrieving information across sessions.
 
-Backed by SQLite with an async interface (`aiosqlite`) and a synchronous fallback (`sqlite3`).
+Backed by SQLite with an async interface (`aiosqlite`) and a synchronous fallback (`sqlite3`). Supports 7 tables covering conversation history, user facts, notes, reminders, clipboard history, location logs, and custom voice commands — with keyword search and full export capabilities.
 
 ## Database Schema
 
-The database (`data/jarvis.db`) contains five tables:
+The database (`data/jarvis.db`) contains seven tables:
 
 ### `conversation`
 
@@ -34,16 +34,6 @@ Key-value store for user facts (e.g. "my name is Alex").
 | `timestamp` | TEXT DEFAULT `datetime('now')` | Last updated |
 
 Uses `ON CONFLICT(key) DO UPDATE` — storing the same key overwrites the previous value.
-
-### `settings`
-
-General-purpose key-value settings store.
-
-| Column | Type | Description |
-|--------|------|-------------|
-| `id` | INTEGER PK AUTOINCREMENT | Row ID |
-| `key` | TEXT UNIQUE | Setting key |
-| `value` | TEXT | Setting value |
 
 ### `notes`
 
@@ -122,6 +112,30 @@ class MemoryPipeline:
 
     async def get_facts() -> str
     """Return all stored facts as a formatted string for LLM prompts."""
+
+    async def search_conversation(query: str, limit: int = 10) -> list[dict]
+    """Search conversation history for messages containing a keyword or phrase."""
+
+    async def export_conversation(filepath: str | Path) -> str
+    """Export full conversation history to a formatted text file."""
+
+    async def save_note(title: str, content: str) -> int
+    """Save a new note."""
+
+    async def get_notes() -> list[dict]
+    """Fetch all stored notes."""
+
+    async def delete_note(query: str) -> bool
+    """Delete note(s) matching title or content query."""
+
+    async def save_reminder(text: str, remind_at: str | None = None) -> int
+    """Save a new reminder."""
+
+    async def get_reminders() -> list[dict]
+    """Fetch all active (non-done) reminders."""
+
+    async def delete_reminder(query: str) -> bool
+    """Delete reminder(s) matching text query."""
 
     async def save_clipboard(content: str) -> int
     """Save copied text into clipboard_history."""

@@ -17,5 +17,7 @@ async def test_get_system_telemetry():
 async def test_format_diagnostic_report():
     telemetry = TelemetryPipeline()
     report = await telemetry.format_diagnostic_report()
-    assert "JARVIS System Telemetry" in report
-    assert "RAM Usage" in report
+    assert "DIAGNOSTIC REPORT" in report
+    assert "MEMORY CORES" in report
+    assert "POWER SYSTEMS" in report
+    assert "STORAGE BAY" in report

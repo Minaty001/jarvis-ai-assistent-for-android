@@ -112,6 +112,47 @@ JARVIS_TOOL_SCHEMAS: list[dict[str, Any]] = [
                 "required": ["text"]
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_clipboard",
+            "description": "Read the current text content from the Android system clipboard.",
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "take_note",
+            "description": "Save a note to the user's personal database for later reference.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "content": {
+                        "type": "string",
+                        "description": "The note content to save."
+                    }
+                },
+                "required": ["content"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "view_reminders",
+            "description": "List all active user reminders.",
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            }
+        }
     }
 ]
 
@@ -159,5 +200,20 @@ async def execute_llm_tool_call(engine: Any, tool_call: dict[str, Any]) -> str:
 
     if name == "copy_clipboard" and engine.device:
         return await engine.device.execute("copy_clipboard", {"text": args.get("text", "")})
+
+    if name == "get_clipboard" and engine.device:
+        return await engine.device.execute("get_clipboard", {})
+
+    if name == "take_note" and engine.memory:
+        content = args.get("content", "")
+        title = content[:20] + "..." if len(content) > 20 else content
+        await engine.memory.save_note(title, content)
+        return f"Note saved to your personal database, sir."
+
+    if name == "view_reminders" and engine.memory:
+        reminders = await engine.memory.get_reminders()
+        if not reminders:
+            return "No active reminders on record, sir. All clear."
+        return "Active reminders:\n" + "\n".join(f"- {r['text']}" for r in reminders)
 
     return f"Tool '{name}' execution unavailable."

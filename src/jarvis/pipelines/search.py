@@ -51,11 +51,11 @@ class SearchPipeline:
 
                     loc_name = f"{city}, {country}" if country else city
                     return (
-                        f"Weather report for {loc_name}:\n"
-                        f"- Condition: {desc}\n"
-                        f"- Temperature: {temp_c}°C (Feels like {feels_c}°C)\n"
-                        f"- Humidity: {humidity}%\n"
-                        f"- Wind Speed: {wind_kmh} km/h"
+                        f"Atmospheric telemetry for {loc_name}, sir:\n"
+                        f"- Conditions: {desc}\n"
+                        f"- Temperature: {temp_c}°C (Perceived: {feels_c}°C)\n"
+                        f"- Relative Humidity: {humidity}%\n"
+                        f"- Wind Velocity: {wind_kmh} km/h"
                     )
         except Exception as e:
             log.warning(f"Live weather API error: {e}")
@@ -67,11 +67,11 @@ class SearchPipeline:
             async with httpx.AsyncClient(timeout=4.0) as client:
                 resp = await client.get(fallback_url)
                 if resp.status_code == 200:
-                    return f"Weather report: {resp.text.strip()}"
+                    return f"Atmospheric telemetry for {location}, sir: {resp.text.strip()}"
         except Exception:
             pass
 
-        return f"Could not retrieve weather telemetry for '{location}' at this moment, sir."
+        return f"I'm afraid weather telemetry for '{location}' is unavailable at this moment, sir."
 
     async def search_web_summary(self, query: str) -> str:
         """Search the web for real-time information using DuckDuckGo Instant Answer API.
@@ -83,7 +83,7 @@ class SearchPipeline:
             Summary snippet or search message.
         """
         if not query:
-            return "Please provide a query for web intelligence search."
+            return "Please specify a query for web intelligence analysis, sir."
 
         url = f"https://api.duckduckgo.com/?q={urllib.parse.quote(query)}&format=json&no_html=1&skip_disambig=1"
         try:
@@ -94,7 +94,7 @@ class SearchPipeline:
                     data = resp.json()
                     abstract = data.get("AbstractText", "")
                     if abstract:
-                        return f"Web Intelligence for '{query}':\n{abstract}"
+                        return f"Web intelligence report for '{query}', sir:\n{abstract}"
                     heading = data.get("Heading", "")
                     related = data.get("RelatedTopics", [])
                     if related and isinstance(related, list):
@@ -103,8 +103,8 @@ class SearchPipeline:
                             if isinstance(r, dict) and "Text" in r:
                                 snippets.append(f"- {r['Text']}")
                         if snippets:
-                            return f"Web Search highlights for '{query}':\n" + "\n".join(snippets)
+                            return f"Web intelligence highlights for '{query}', sir:\n" + "\n".join(snippets)
         except Exception as e:
             log.warning(f"Web search API error: {e}")
 
-        return f"Web search initiated for '{query}'. Direct search results ready for browser launch."
+        return f"Web intelligence search initiated for '{query}', sir. Standing by."

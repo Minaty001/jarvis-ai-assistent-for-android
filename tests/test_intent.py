@@ -93,6 +93,16 @@ class TestIntentClassifier:
         intent, params = classify_intent("remember that my favorite color is blue")
         assert intent == "remember_fact"
 
+    def test_search_conversation(self):
+        intent, params = classify_intent("search my conversation for python")
+        assert intent == "search_conversation"
+        assert "python" in params["query"]
+
+    def test_search_conversation_alt(self):
+        intent, params = classify_intent("what did we talk about python")
+        assert intent == "search_conversation"
+        assert "python" in params["query"]
+
     def test_exit_intent(self):
         intent, params = classify_intent("goodbye")
         assert intent == "exit"
@@ -109,3 +119,90 @@ class TestIntentClassifier:
     def test_show_notifications(self):
         intent, params = classify_intent("show notifications")
         assert intent == "show_notifications"
+
+    def test_export_conversation(self):
+        intent, params = classify_intent("export conversation")
+        assert intent == "export_conversation"
+
+    def test_export_conversation_alt(self):
+        intent, params = classify_intent("save chat history")
+        assert intent == "export_conversation"
+
+    def test_export_conversation_backup(self):
+        intent, params = classify_intent("backup conversation")
+        assert intent == "export_conversation"
+
+    def test_take_screenshot(self):
+        intent, params = classify_intent("take a screenshot")
+        assert intent == "take_screenshot"
+
+    def test_take_screenshot_short(self):
+        intent, params = classify_intent("screenshot")
+        assert intent == "take_screenshot"
+
+    def test_capture_screen(self):
+        intent, params = classify_intent("capture the screen")
+        assert intent == "take_screenshot"
+
+    def test_send_notification(self):
+        intent, params = classify_intent("send a notification saying battery low")
+        assert intent == "send_notification"
+        assert "battery low" in params["content"]
+
+    def test_notify_me(self):
+        intent, params = classify_intent("notify me that meeting starts")
+        assert intent == "send_notification"
+        assert "meeting starts" in params["content"]
+
+    def test_airplane_mode_on(self):
+        intent, params = classify_intent("turn on airplane mode")
+        assert intent == "airplane_mode"
+
+    def test_airplane_mode_off(self):
+        intent, params = classify_intent("disable flight mode")
+        assert intent == "airplane_mode"
+
+    def test_airplane_mode_toggle(self):
+        intent, params = classify_intent("toggle airplane mode")
+        assert intent == "airplane_mode"
+
+    def test_do_not_disturb_on(self):
+        intent, params = classify_intent("turn on do not disturb")
+        assert intent == "do_not_disturb"
+
+    def test_do_not_disturb_off(self):
+        intent, params = classify_intent("disable silent mode")
+        assert intent == "do_not_disturb"
+
+    def test_do_not_disturb_toggle(self):
+        intent, params = classify_intent("toggle dnd")
+        assert intent == "do_not_disturb"
+
+    def test_sensor_data(self):
+        intent, params = classify_intent("read sensor data")
+        assert intent == "sensor_data"
+
+    def test_sensor_data_specific(self):
+        intent, params = classify_intent("sensor readings accelerometer")
+        assert intent == "sensor_data"
+        assert "accelerometer" in params.get("sensor", "")
+
+    def test_recurring_timer(self):
+        intent, params = classify_intent("set a recurring timer for 5 minutes called stand up")
+        assert intent == "set_timer"
+        assert params["duration"] == "5"
+        assert "min" in params.get("unit", "")
+        assert "stand up" in params.get("label", "")
+
+    def test_repeat_every_timer(self):
+        intent, params = classify_intent("repeat every 30 seconds")
+        assert intent == "set_timer"
+        assert params["duration"] == "30"
+        assert "sec" in params.get("unit", "")
+
+    def test_repeat_every_minutes_label(self):
+        intent, params = classify_intent("repeat every 10 minutes called coffee break")
+        assert intent == "set_timer"
+        assert params["duration"] == "10"
+        assert "min" in params.get("unit", "")
+        assert "coffee break" in params.get("label", "")

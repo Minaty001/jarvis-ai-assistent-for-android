@@ -18,8 +18,11 @@ class Config:
     """Immutable configuration loaded from .env / environment variables."""
 
     groq_api_key: str = field(default_factory=lambda: os.getenv("GROQ_API_KEY", ""))
-    model_name: str = field(default_factory=lambda: os.getenv("MODEL_NAME", "llama3-8b-8192"))
+    model_name: str = field(default_factory=lambda: os.getenv("MODEL_NAME", "llama-3.1-8b-instant"))
     groq_api_base: str = field(default_factory=lambda: os.getenv("GROQ_API_BASE", "https://api.groq.com/openai/v1"))
+    openai_api_key: str = field(default_factory=lambda: os.getenv("OPENAI_API_KEY", ""))
+    openai_model: str = field(default_factory=lambda: os.getenv("OPENAI_MODEL", "gpt-4o-mini"))
+    openai_api_base: str = field(default_factory=lambda: os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1"))
     database_path: str = field(default_factory=lambda: os.getenv("DATABASE_PATH", str(BASE_DIR / "data" / "jarvis.db")))
     models_dir: str = field(default_factory=lambda: os.getenv("MODELS_DIR", str(BASE_DIR / "models")))
     voices_dir: str = field(default_factory=lambda: os.getenv("VOICES_DIR", str(BASE_DIR / "voices")))
@@ -29,6 +32,8 @@ class Config:
     listen_timeout: float = field(default_factory=lambda: float(os.getenv("LISTEN_TIMEOUT", "5.0")))
     groq_timeout: float = field(default_factory=lambda: float(os.getenv("GROQ_TIMEOUT", "30.0")))
     max_history: int = field(default_factory=lambda: int(os.getenv("MAX_HISTORY", "20")))
+    llm_temperature: float = field(default_factory=lambda: float(os.getenv("LLM_TEMPERATURE", "0.7")))
+    llm_max_tokens: int = field(default_factory=lambda: int(os.getenv("LLM_MAX_TOKENS", "512")))
     tts_rate: int = field(default_factory=lambda: int(os.getenv("TTS_RATE", "175")))
     tts_pitch: int = field(default_factory=lambda: int(os.getenv("TTS_PITCH", "100")))
 

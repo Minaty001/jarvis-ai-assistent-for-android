@@ -148,9 +148,17 @@ class TUI:
                 # Strip ANSI codes for curses rendering
                 clean = line
                 for code in [
-                    "\033[38;2;255;170;0m", "\033[38;2;0;240;255m",
-                    "\033[38;2;0;255;136m", "\033[38;2;136;68;255m",
-                    "\033[38;2;255;51;102m", "\033[38;2;0;102;255m",
+                    "\033[38;2;255;170;0m",   # PFC amber
+                    "\033[38;2;0;240;255m",   # Auditory cyan
+                    "\033[38;2;0;255;136m",   # Wernicke green
+                    "\033[38;2;136;68;255m",  # Broca purple
+                    "\033[38;2;255;51;102m",  # Motor red
+                    "\033[38;2;0;102;255m",   # Hippocampus blue
+                    "\033[38;2;255;0;255m",   # Occipital magenta
+                    "\033[38;2;0;255;204m",   # Somatosensory teal
+                    "\033[38;2;255;51;0m",    # Defense bright red
+                    "\033[38;2;255;255;0m",   # Thalamus yellow
+                    "\033[38;2;170;255;0m",   # Cerebellum lime
                     RESET, BOLD, DIM,
                 ]:
                     clean = clean.replace(code, "")

@@ -95,8 +95,8 @@ class VisionPipeline:
             return f"Visual inspection failed: {inspection.get('message')}"
 
         size_kb = round(inspection.get("size_bytes", 0) / 1024, 1)
-        prompt_info = f"Visual target captured at '{target_path}' ({size_kb} KB)."
+        prompt_info = f"Visual target acquired at '{target_path}' ({size_kb} KB), sir. Optical sensors reporting clear framing."
         if query:
-            prompt_info += f" Analysis request: '{query}'."
+            prompt_info += f" Visual analysis request: '{query}'."
 
         return prompt_info

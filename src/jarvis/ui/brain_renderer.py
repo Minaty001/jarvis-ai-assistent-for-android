@@ -1,6 +1,6 @@
 """Brain Renderer — visualizes the cortical network of pipelines.
 
-Renders a 6-region cortical map showing pipeline status, neural pathways,
+Renders an 11-region cortical map showing pipeline status, neural pathways,
 and real-time activity metrics. Used by both terminal TUI and web UI.
 """
 
@@ -55,7 +55,7 @@ class BrainRenderer:
 
     @staticmethod
     def build_region_map(state: BrainState) -> str:
-        """Render the 6-region cortical brain map as styled ASCII.
+        """Render the 11-region cortical brain map as styled ASCII.
 
         Args:
             state: Current brain state snapshot.

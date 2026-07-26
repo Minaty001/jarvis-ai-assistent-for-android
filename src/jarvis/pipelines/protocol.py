@@ -19,9 +19,10 @@ from jarvis.utils.logging import log
 class ProtocolPipeline:
     """Orchestrator for automated named security protocols."""
 
-    def __init__(self, device_pipeline=None, telemetry_pipeline=None) -> None:
+    def __init__(self, device_pipeline=None, telemetry_pipeline=None, audio_fx_pipeline=None) -> None:
         self.device = device_pipeline
         self.telemetry = telemetry_pipeline
+        self.audio_fx = audio_fx_pipeline
         self._active_protocol: str | None = None
 
     async def execute_protocol(self, protocol_name: str) -> str:
@@ -43,6 +44,14 @@ class ProtocolPipeline:
         self._active_protocol = name_clean
         result = await handler()
         self._active_protocol = None
+
+        # Play success audio FX on protocol completion
+        if self.audio_fx:
+            try:
+                await self.audio_fx.play_fx("success")
+            except Exception:
+                pass
+
         return result
 
     def _get_protocol_handler(self, name: str) -> Callable[[], Awaitable[str]] | None:
@@ -75,8 +84,9 @@ class ProtocolPipeline:
             actions.append("Disengaged auxiliary illumination.")
 
         return (
-            "House Party Protocol initiated, sir. All non-essential sub-routines terminated, "
-            "memory caches purged, and system resources reallocated."
+            "House Party Protocol confirmed, sir. All non-essential sub-routines have been terminated, "
+            "memory caches purged, and system resources reallocated to primary functions. "
+            "The suit is ready."
         )
 
     async def _stealth_protocol(self) -> str:
@@ -90,7 +100,7 @@ class ProtocolPipeline:
         else:
             actions.append("Simulated stealth adjustments applied.")
 
-        return "Stealth Mode engaged, sir. Audio silenced, display output minimized, emitters offline."
+        return "Stealth Mode engaged, sir. Audio systems silenced, display output minimized to minimum luminance, optical emitters offline. You are effectively invisible."
 
     async def _lockdown_protocol(self) -> str:
         """Lockdown Protocol: Disable external radios (WiFi, Bluetooth)."""
@@ -102,7 +112,7 @@ class ProtocolPipeline:
         else:
             actions.append("Perimeter isolation executed.")
 
-        return "Lockdown Protocol active. External communications severed and local access restricted."
+        return "Lockdown Protocol active, sir. External communications severed — WiFi and Bluetooth adapters disabled. Perimeter secured. Local access restricted."
 
     async def _protocol_alpha(self) -> str:
         """Protocol Alpha: Comprehensive system diagnostic and readiness check."""
@@ -116,11 +126,11 @@ class ProtocolPipeline:
 
     async def _clean_sweep_protocol(self) -> str:
         """Clean Sweep: Terminate background noise, prepare optimal workspace."""
-        return "Clean Sweep Protocol completed. Temporary files checked, workspace operational."
+        return "Clean Sweep Protocol completed, sir. Temporary files verified, background processes checked, and workspace optimised for maximum efficiency."
 
     async def _overdrive_protocol(self) -> str:
         """Overdrive Mode: Max brightness, high audio, full telemetry output."""
         if self.device:
             await self.device.execute("set_volume", {"level": "15"})
             await self.device.execute("set_brightness", {"level": "255"})
-        return "Overdrive Mode engaged. System operating at maximum capacity, sir."
+        return "Overdrive Mode engaged, sir. All systems operating at maximum capacity. I'd advise caution — we're running hot."

@@ -74,7 +74,7 @@ class AutonomyPipeline:
         """Internal worker loop for periodic health checks."""
         try:
             while self._running:
-                await asyncio.sleep(self.check_interval_sec)
                 await self.check_health_now()
+                await asyncio.sleep(self.check_interval_sec)
         except asyncio.CancelledError:
             pass

@@ -3,7 +3,7 @@
 ## 1. Overview
 
 **Product Name:** Jarvis AI Assistant for Android  
-**Version:** 0.4.0  
+**Version:** 0.5.0  
 **Author:** Minaty001  
 **Repository:** https://github.com/Minaty001/jarvis-ai-assistent-for-android
 
@@ -21,7 +21,7 @@ A voice-controlled AI assistant for Android (Termux) built with a brain-inspired
 
 Existing Android assistants are closed, cloud-dependent, or not extensible. Users on Termux lack a voice-controlled assistant that:
 - Runs with cloud STT via Groq Whisper API (fast, accurate)
-- Provides LLM-powered reasoning via Groq API
+- Provides LLM-powered reasoning via Groq API with OpenAI-compatible fallback
 - Controls Android hardware via termux-api
 - Shows real-time internal pipeline state
 - Degrades gracefully when components are unavailable
@@ -31,27 +31,42 @@ Existing Android assistants are closed, cloud-dependent, or not extensible. User
 ### 4.1 Voice Interaction
 - Wake-word activation ("Jarvis", "Boss", "Computer")
 - Speech-to-text via **Groq Whisper API** (`whisper-large-v3`)
-- LLM-powered chat and reasoning via Groq API (`llama-3.1-8b-instant`)
+- Dual LLM reasoning: **Groq API** (`llama-3.1-8b-instant`) primary with **OpenAI-compatible fallback** (`gpt-4o-mini` or custom) — automatic failover when one provider is unavailable
+- LLM function calling with 9 dynamic tool schemas (clipboard, notes, reminders, web search, weather, location, SMS, media control, telephony)
 - Text-to-speech via Piper TTS (local), edge-tts (free cloud), or Android TTS fallback
 - Text-only fallback when microphone / STT is unavailable
 
 ### 4.2 Android Device Control
 - Open / close apps by name (camera, settings, gallery, browser, etc.)
-- Toggle flashlight, wifi, bluetooth
+- Toggle flashlight, wifi, bluetooth, airplane mode, do not disturb
 - Adjust volume and brightness
 - Read battery status, time, date
 - Search Google / YouTube
 - Take notes, set reminders (with Memory pipeline persistence)
+- Screenshot capture via termux-api
+- Persistent Android notifications via termux-notification
+- Sensor data reading (accelerometer, gyroscope, magnetometer, light, pressure, proximity, humidity)
+- Clipboard management (copy & read clipboard)
+- Haptic vibration feedback
+- Android toast overlay notifications
+- GPS & location telemetry
+- Phone dialing and SMS dispatch
+- Media playback controls (play, pause, next, previous, stop)
 
 ### 4.3 Persistent Memory
-- Conversation history (SQLite)
+- Conversation history (SQLite) with keyword search and full export to text file
 - User facts ("remember my name is Alex")
 - Notes and reminders storage
+- Clipboard history log
+- Device location log
+- Custom voice command macros
 - Context injection into LLM prompts
 
 ### 4.4 Real-time Brain Visualization
 - Terminal TUI (curses) showing 11 cortical regions with activity glow
 - Web UI (Flask) with live SSE updates and canvas-based brain map
+- Persistent scrollable chat conversation log in web UI
+- Browser voice input via Web Speech API
 - Neural pathway animation during processing
 - Per-region latency, activity %, synapse count, cortex health
 
@@ -60,7 +75,7 @@ Existing Android assistants are closed, cloud-dependent, or not extensible. User
 - **Visual Intelligence:** Photo capture and optical target analysis via `termux-camera-photo`.
 - **System Telemetry:** Real-time diagnostics monitoring CPU load average, RAM utilization, storage space, and battery status.
 - **Web Intelligence & Live Weather:** Instant weather telemetry (Open-Meteo / wttr.in) and real-time DuckDuckGo web search summaries.
-- **Async Countdown Scheduler:** Active countdown timers with async completion callbacks.
+- **Async Countdown & Recurring Scheduler:** One-shot countdown timers plus repeating/recurring timers with async completion callbacks and voice alerts.
 
 ### 4.6 Android Native Mobile Ergonomics
 - **Clipboard Management:** Copy generated answers or read clipboard contents via `termux-clipboard-set` and `termux-clipboard-get`.
@@ -76,9 +91,15 @@ Existing Android assistants are closed, cloud-dependent, or not extensible. User
 - **Synthesized Audio FX Pipeline:** Zero-dependency sci-fi sound effects (`wake`, `protocol`, `success`, `warning`) generated via standard PCM wave synthesis.
 - **Proactive Background Autonomy:** Periodic telemetry monitoring with automated voice alerts when battery power drops below 15% (`autonomy.py`).
 
-### 4.8 Graceful Degradation
+### 4.8 Configurable LLM Parameters
+- **Temperature:** Adjust LLM response creativity via `LLM_TEMPERATURE` (default 0.7).
+- **Max Tokens:** Control response length via `LLM_MAX_TOKENS` (default 512).
+- **OpenAI Endpoint:** Configurable base URL for OpenAI-compatible providers (`OPENAI_BASE_URL`).
+- **Model Selection:** Separate model config for Groq (`MODEL_NAME`) and OpenAI (`OPENAI_MODEL`).
+
+### 4.9 Graceful Degradation
 No single component failure crashes the assistant:
-- No Groq key → text-only input with informative error
+- No Groq key → fails over to OpenAI if configured; otherwise STT and LLM unavailable with informative error
 - No Piper → edge-tts (free cloud TTS), then Android TTS fallback
 - No Termux:API → descriptive error per action
 - No SQLite → conversation continues without persistence
@@ -106,6 +127,17 @@ No single component failure crashes the assistant:
 | US16 | As a user, I want to define custom voice command shortcuts (e.g. "morning briefing") that execute macro actions. |
 | US17 | As a user, I want to hear high-tech audio sound effects on wake word detection and protocol execution. |
 | US18 | As a user, I want proactive background warnings when my phone battery drops low. |
+| US19 | As a user, I want the assistant to automatically fall back to OpenAI if the Groq API is unavailable. |
+| US20 | As a user, I want to set repeating timers (e.g. "remind me every 5 minutes") that fire on a schedule. |
+| US21 | As a user, I want to search my conversation history for past messages. |
+| US22 | As a user, I want to export my full conversation history to a text file. |
+| US23 | As a user, I want to take a screenshot of my device by voice. |
+| US24 | As a user, I want to send persistent Android notifications by voice. |
+| US25 | As a user, I want to toggle airplane mode and do not disturb mode by voice. |
+| US26 | As a user, I want to read sensor data (accelerometer, gyroscope, etc.) by voice. |
+| US27 | As a user, I want to adjust the LLM's temperature and max tokens via configuration. |
+| US28 | As a user, I want to see a scrollable chat log in the web UI alongside the brain visualization. |
+| US29 | As a user, I want to use my browser's microphone to speak commands in the web UI. |
 
 ## 6. Non-Goals
 
@@ -121,5 +153,5 @@ No single component failure crashes the assistant:
 |--------|--------|
 | Intent classification accuracy | >95% on supported intents |
 | STT → response latency | <3s with Groq Whisper + Groq LLM |
-| Tests passing | All tests green |
+| Tests passing | All tests green (131 passing) |
 | Graceful degradation scenarios | All failure modes handled |

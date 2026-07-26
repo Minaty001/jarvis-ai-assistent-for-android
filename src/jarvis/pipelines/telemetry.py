@@ -109,20 +109,56 @@ class TelemetryPipeline:
         return {"percentage": 100, "plugged": "UNKNOWN", "status": "NOMINAL", "temperature": 25.0}
 
     async def format_diagnostic_report(self) -> str:
-        """Generate formatted Stark JARVIS system status report."""
+        """Generate a Stark-style JARVIS suit diagnostic readout."""
         telem = await self.get_system_telemetry()
         status = telem["status"]
         mem = telem["memory"]
         disk = telem["disk"]
         batt = telem["battery"]
-        load = telem["load_average"][0]
+        load1, load5, load15 = telem["load_average"]
+
+        uptime_sec = telem["uptime_seconds"]
+        hours, rem = divmod(uptime_sec, 3600)
+        minutes = rem // 60
+
+        # Status icon
+        status_icon = "✅ NOMINAL" if status == "NOMINAL" else "⚠️  WARNING"
+
+        # Battery alert
+        batt_pct = batt.get("percentage", 100)
+        batt_status = batt.get("status", "UNKNOWN")
+        batt_plug = batt.get("plugged", "UNKNOWN")
+        batt_temp = batt.get("temperature", 0.0)
+        power_note = " — CHARGING" if batt_plug not in ("UNPLUGGED", "UNKNOWN") else ""
+        batt_warn = " ⚠️  CRITICAL — recommend immediate charging" if batt_pct <= 15 else ""
 
         lines = [
-            f"JARVIS System Telemetry: {status}",
-            f"- CPU Load: {load:.2f}",
-            f"- RAM Usage: {mem['used_mb']} MB / {mem['total_mb']} MB ({mem['percent_used']}%)",
-            f"- Storage: {disk['free_mb']} MB free of {disk['total_mb']} MB",
-            f"- Power Grid: Battery at {batt['percentage']}%, Status: {batt['status']}",
-            f"- Uptime: {telem['uptime_seconds']} seconds",
+            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+            "  J.A.R.V.I.S.  SUIT DIAGNOSTIC REPORT",
+            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+            f"  CORTEX STATUS    : {status_icon}",
+            f"  UPTIME           : {hours}h {minutes}m",
+            f"  PLATFORM         : {telem['platform']} / {telem['machine']}",
+            "─────────────────────────────────────────────────",
+            "  POWER SYSTEMS",
+            f"  Power Grid       : {batt_pct}%{power_note}{batt_warn}",
+            f"  Charge State     : {batt_status}",
+            f"  Cell Temperature : {batt_temp:.1f}°C",
+            "─────────────────────────────────────────────────",
+            "  PROCESSING CORES",
+            f"  Neural Load 1m   : {load1:.2f}",
+            f"  Neural Load 5m   : {load5:.2f}",
+            f"  Neural Load 15m  : {load15:.2f}",
+            "─────────────────────────────────────────────────",
+            "  MEMORY CORES",
+            f"  RAM Allocated    : {mem['used_mb']:,} MB / {mem['total_mb']:,} MB",
+            f"  RAM Available    : {mem['free_mb']:,} MB  ({mem['percent_used']}% used)",
+            "─────────────────────────────────────────────────",
+            "  STORAGE BAY",
+            f"  Capacity         : {disk['total_mb']:,} MB total",
+            f"  Occupied         : {disk['used_mb']:,} MB",
+            f"  Available        : {disk['free_mb']:,} MB  ({disk['percent_used']}% used)",
+            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+            "  All systems reporting in, sir.",
         ]
         return "\n".join(lines)

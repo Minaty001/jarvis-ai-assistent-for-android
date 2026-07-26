@@ -19,7 +19,6 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            user-select: none;
         }
 
         body {
@@ -38,33 +37,32 @@
             background-size: 100% 100%, 30px 30px, 30px 30px;
         }
 
-        /* Smartphone Container Frame */
         .phone-wrapper {
             width: 100%;
             max-width: 410px;
-            height: 880px;
+            height: 92vh;
+            max-height: 900px;
+            min-height: 700px;
             background: rgba(1, 10, 20, 0.95);
             border-radius: 40px;
             box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 240, 255, 0.1);
             padding: 30px 20px;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
             position: relative;
             overflow: hidden;
             border: 2px solid rgba(0, 240, 255, 0.2);
         }
 
-        /* Top Header */
         .header {
             text-align: center;
-            margin-top: 10px;
+            flex-shrink: 0;
         }
 
         .header h1 {
             font-family: 'Orbitron', sans-serif;
             font-weight: 900;
-            font-size: 2rem;
+            font-size: 1.6rem;
             letter-spacing: 6px;
             color: #ffffff;
             text-shadow: 0 0 10px rgba(255, 255, 255, 0.5), 0 0 20px var(--neon-cyan);
@@ -73,25 +71,26 @@
 
         .header p {
             font-family: 'Orbitron', sans-serif;
-            font-size: 0.75rem;
+            font-size: 0.6rem;
             letter-spacing: 2px;
             color: var(--neon-cyan);
             text-shadow: var(--glow-shadow);
             font-weight: 700;
         }
 
-        /* Central Brain Canvas — neural network visualization */
+        /* Brain canvas area */
         .core-container {
             display: flex;
             justify-content: center;
             align-items: center;
             position: relative;
-            margin: 15px 0 5px 0;
-            height: 280px;
+            margin: 8px 0 4px 0;
+            height: 160px;
             border: 1px solid rgba(0, 240, 255, 0.1);
             border-radius: 8px;
             background: rgba(0, 5, 12, 0.6);
             overflow: hidden;
+            flex-shrink: 0;
         }
 
         #brain-canvas {
@@ -100,15 +99,15 @@
             display: block;
         }
 
-        /* Status Text below Core */
         .status-callout {
             text-align: center;
-            margin-bottom: 15px;
+            flex-shrink: 0;
+            margin: 2px 0 6px 0;
         }
 
         .status-callout .ready-text {
             font-family: 'Orbitron', sans-serif;
-            font-size: 1.4rem;
+            font-size: 1.1rem;
             font-weight: 700;
             letter-spacing: 2px;
             color: #fff;
@@ -116,61 +115,94 @@
         }
 
         .status-callout .listening-text {
-            font-size: 0.95rem;
+            font-size: 0.8rem;
             color: var(--neon-cyan);
             letter-spacing: 1px;
             opacity: 0.85;
-            margin-top: 4px;
+            margin-top: 2px;
             animation: pulseText 1.5s infinite alternate;
+            min-height: 1.2em;
+            word-wrap: break-word;
         }
 
-        /* Hexagonal Microphone Trigger */
-        .mic-trigger {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 25px;
-            cursor: pointer;
+        /* Chat Log */
+        .chat-log {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            margin: 6px 0 8px 0;
+            padding: 8px;
+            background: rgba(0, 5, 12, 0.5);
+            border: 1px solid rgba(0, 240, 255, 0.08);
+            border-radius: 6px;
+            scroll-behavior: smooth;
         }
 
-        .mic-hexagon {
-            width: 60px;
-            height: 65px;
-            background: rgba(0, 240, 255, 0.1);
-            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-            border: 1px solid var(--neon-cyan);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            box-shadow: inset 0 0 15px rgba(0, 240, 255, 0.2);
-            transition: all 0.3s ease;
+        .chat-log::-webkit-scrollbar {
+            width: 4px;
+        }
+        .chat-log::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .chat-log::-webkit-scrollbar-thumb {
+            background: rgba(0, 240, 255, 0.2);
+            border-radius: 2px;
         }
 
-        .mic-hexagon:hover {
-            background: rgba(0, 240, 255, 0.25);
-            box-shadow: 0 0 20px var(--neon-cyan);
+        .chat-entry {
+            margin-bottom: 8px;
+            padding: 4px 6px;
+            border-left: 2px solid transparent;
+            animation: fadeIn 0.2s ease;
         }
 
-        .mic-hexagon svg {
-            width: 24px;
-            height: 24px;
-            fill: var(--neon-cyan);
-            filter: drop-shadow(0 0 5px var(--neon-cyan));
+        .chat-entry.user {
+            border-left-color: var(--neon-cyan);
+        }
+        .chat-entry.jarvis {
+            border-left-color: rgba(0, 255, 136, 0.6);
+        }
+        .chat-entry.system {
+            border-left-color: rgba(255, 170, 0, 0.6);
+            opacity: 0.7;
+            font-size: 0.8rem;
         }
 
-        /* Grid HUD Modules */
+        .chat-entry .entry-role {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.65rem;
+            letter-spacing: 1px;
+            opacity: 0.6;
+            margin-bottom: 1px;
+        }
+        .chat-entry.user .entry-role { color: var(--neon-cyan); }
+        .chat-entry.jarvis .entry-role { color: #00ff88; }
+
+        .chat-entry .entry-text {
+            font-size: 0.85rem;
+            line-height: 1.3;
+            color: rgba(255, 255, 255, 0.85);
+            word-wrap: break-word;
+        }
+
+        .chat-entry.jarvis .entry-text {
+            color: rgba(0, 255, 136, 0.9);
+        }
+
+        /* HUD Grid */
         .hud-grid-2x2 {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 12px;
+            gap: 8px;
+            flex-shrink: 0;
+            margin-bottom: 6px;
         }
 
         .hud-card {
             background: var(--glass-bg);
             border: 1px solid var(--glass-border);
             border-radius: 6px;
-            padding: 12px;
+            padding: 8px;
             position: relative;
             box-shadow: inset 0 0 10px rgba(0, 240, 255, 0.05);
         }
@@ -178,25 +210,25 @@
         .hud-card::before {
             content: '';
             position: absolute;
-            top: 0; left: 0; width: 6px; height: 6px;
-            border-top: 2px solid var(--neon-cyan);
-            border-left: 2px solid var(--neon-cyan);
+            top: 0; left: 0; width: 4px; height: 4px;
+            border-top: 1.5px solid var(--neon-cyan);
+            border-left: 1.5px solid var(--neon-cyan);
         }
 
         .card-title {
-            font-size: 0.8rem;
+            font-size: 0.65rem;
             font-weight: 700;
             letter-spacing: 1px;
             color: #ffffff;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
             border-bottom: 1px solid rgba(0, 240, 255, 0.15);
-            padding-bottom: 3px;
+            padding-bottom: 2px;
         }
 
         .card-row {
-            font-size: 0.85rem;
+            font-size: 0.75rem;
             color: rgba(255, 255, 255, 0.75);
-            line-height: 1.4;
+            line-height: 1.3;
             display: flex;
             justify-content: space-between;
         }
@@ -210,17 +242,18 @@
             grid-column: span 2;
         }
 
-        /* Inline Stats Bar */
+        /* Stats Bar */
         .stats-inline-bar {
             background: rgba(2, 15, 28, 0.8);
             border: 1px solid rgba(0, 240, 255, 0.15);
             border-radius: 4px;
-            padding: 6px 10px;
+            padding: 4px 8px;
             display: flex;
             justify-content: space-between;
-            font-size: 0.72rem;
+            font-size: 0.62rem;
             color: rgba(255, 255, 255, 0.7);
-            margin-bottom: 15px;
+            flex-shrink: 0;
+            margin-bottom: 6px;
             font-family: 'Orbitron', sans-serif;
         }
 
@@ -228,12 +261,20 @@
             color: var(--neon-cyan);
         }
 
-        /* Command Line Input */
+        /* Command Input Row */
+        .command-row {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+            margin-bottom: 6px;
+        }
+
         .command-box {
+            flex: 1;
             background: rgba(0, 15, 25, 0.8);
             border: 1px solid var(--neon-cyan);
             border-radius: 4px;
-            padding: 10px 12px;
+            padding: 8px 10px;
             display: flex;
             align-items: center;
             box-shadow: 0 0 10px rgba(0, 240, 255, 0.1);
@@ -241,11 +282,12 @@
 
         .command-label {
             font-family: 'Orbitron', sans-serif;
-            font-size: 0.8rem;
+            font-size: 0.7rem;
             color: var(--neon-cyan);
             font-weight: 700;
-            margin-right: 8px;
+            margin-right: 6px;
             letter-spacing: 1px;
+            white-space: nowrap;
         }
 
         .command-input {
@@ -254,9 +296,52 @@
             outline: none;
             color: #ffffff;
             font-family: 'Rajdhani', sans-serif;
-            font-size: 0.95rem;
+            font-size: 0.85rem;
             width: 100%;
             letter-spacing: 1px;
+        }
+
+        .command-input::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Voice button */
+        .voice-btn {
+            flex-shrink: 0;
+            width: 42px;
+            height: 42px;
+            background: rgba(0, 240, 255, 0.08);
+            border: 1px solid var(--neon-cyan);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .voice-btn:hover {
+            background: rgba(0, 240, 255, 0.2);
+            box-shadow: 0 0 15px var(--neon-cyan);
+        }
+
+        .voice-btn.listening {
+            background: rgba(255, 51, 0, 0.25);
+            border-color: #ff3300;
+            box-shadow: 0 0 20px rgba(255, 51, 0, 0.5);
+            animation: pulseMic 1s infinite alternate;
+        }
+
+        .voice-btn svg {
+            width: 18px;
+            height: 18px;
+            fill: var(--neon-cyan);
+            filter: drop-shadow(0 0 3px var(--neon-cyan));
+        }
+
+        .voice-btn.listening svg {
+            fill: #ff3300;
+            filter: drop-shadow(0 0 5px #ff3300);
         }
 
         /* Animations */
@@ -265,18 +350,45 @@
             to { opacity: 1; text-shadow: 0 0 8px var(--neon-cyan); }
         }
 
-        /* Bottom Navigation Bar Simulation */
+        @keyframes pulseMic {
+            from { box-shadow: 0 0 10px rgba(255, 51, 0, 0.3); }
+            to { box-shadow: 0 0 25px rgba(255, 51, 0, 0.7); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         .nav-ticks {
             display: flex;
             justify-content: center;
             gap: 25px;
-            margin-top: 12px;
-            opacity: 0.5;
+            flex-shrink: 0;
+            opacity: 0.4;
         }
         .tick {
             width: 15px;
             height: 2px;
             background: #fff;
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 430px) {
+            .phone-wrapper {
+                max-width: 100%;
+                height: 100vh;
+                max-height: none;
+                border-radius: 0;
+                padding: 16px 12px;
+                border: none;
+            }
+            .core-container {
+                height: 120px;
+            }
+            .header h1 {
+                font-size: 1.3rem;
+            }
         }
     </style>
 </head>
@@ -298,13 +410,8 @@
             <div class="listening-text" id="listening-text">Listening...</div>
         </div>
 
-        <div class="mic-trigger" id="micBtn">
-            <div class="mic-hexagon">
-                <svg viewBox="0 0 24 24">
-                    <path d="M12,2A3,3 0 0,1 15,5V11A3,3 0 0,1 12,14A3,3 0 0,1 9,11V5A3,3 0 0,1 12,2M19,11C19,14.53 16.39,17.44 13,17.93V21H11V17.93C7.61,17.44 5,14.53 5,11H7A5,5 0 0,0 12,16A5,5 0 0,0 17,11H19Z" />
-                </svg>
-            </div>
-        </div>
+        <!-- Chat Log -->
+        <div class="chat-log" id="chatLog"></div>
 
         <div class="hud-grid-2x2">
             <div class="hud-card">
@@ -335,9 +442,16 @@
             <div>BATT: <span id="batt-val">89%</span></div>
         </div>
 
-        <div class="command-box">
-            <span class="command-label">COMMAND:</span>
-            <input type="text" class="command-input" id="cmdInput" placeholder="Type a command..." autocomplete="off">
+        <div class="command-row">
+            <div class="command-box">
+                <span class="command-label">CMD:</span>
+                <input type="text" class="command-input" id="cmdInput" placeholder="Type a command..." autocomplete="off">
+            </div>
+            <div class="voice-btn" id="voiceBtn" title="Voice input (Web Speech API)">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12,2A3,3 0 0,1 15,5V11A3,3 0 0,1 12,14A3,3 0 0,1 9,11V5A3,3 0 0,1 12,2M19,11C19,14.53 16.39,17.44 13,17.93V21H11V17.93C7.61,17.44 5,14.53 5,11H7A5,5 0 0,0 12,16A5,5 0 0,0 17,11H19Z" />
+                </svg>
+            </div>
         </div>
 
         <div class="nav-ticks">
@@ -350,7 +464,25 @@
 
     <script src="{{ url_for('static', filename='brain.js') }}"></script>
     <script>
-        // Fetch brain state from the API and update UI
+        // ============== Chat Log ==============
+        const chatLog = document.getElementById('chatLog');
+
+        function addChatEntry(role, text) {
+            const div = document.createElement('div');
+            div.className = 'chat-entry ' + role;
+            const label = role === 'user' ? 'YOU' : role === 'jarvis' ? 'JARVIS' : 'SYSTEM';
+            div.innerHTML = `<div class="entry-role">${label}</div><div class="entry-text">${escapeHtml(text)}</div>`;
+            chatLog.appendChild(div);
+            chatLog.scrollTop = chatLog.scrollHeight;
+        }
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // ============== Brain State ==============
         async function fetchBrainState() {
             try {
                 const resp = await fetch('/api/brain-state');
@@ -365,7 +497,6 @@
             const regions = data.regions || {};
             const activeCount = Object.values(regions).filter(r => r.active).length;
 
-            // Update cortex status cards
             document.getElementById('pfc-status').innerText = regions.pfc?.active ? 'Active' : 'Idle';
             document.getElementById('vision-status').innerText = regions.occipital?.active ? 'Scanning' : 'Standby';
             document.getElementById('defense-status').innerText = regions.defense?.active ? 'Protocol' : 'Standby';
@@ -373,20 +504,17 @@
             document.getElementById('search-status').innerText = regions.thalamus?.active ? 'Querying' : 'Ready';
             document.getElementById('sched-status').innerText = regions.cerebellum?.active ? 'Active' : 'Idle';
 
-            // Update neural activity
             document.getElementById('activity-val').innerText = (data.neural_activity_pct || 0).toFixed(0) + '%';
             document.getElementById('synapse-val').innerText = data.total_synapses || 0;
 
-            // Update pathways
             const paths = data.active_pathways || [];
             const pathEl = document.getElementById('pathways-display');
             if (paths.length > 0) {
-                pathEl.innerHTML = 'Active: <span class="highlight">' + paths.map(p => p[0] + '→' + p[1]).join(' | ') + '</span>';
+                pathEl.innerHTML = 'Active: <span class="highlight">' + paths.map(p => p[0] + '\u2192' + p[1]).join(' | ') + '</span>';
             } else {
                 pathEl.innerHTML = 'All pathways: <span class="highlight">Nominal</span>';
             }
 
-            // Update status text based on engine state
             const statusText = document.getElementById('status-text');
             if (activeCount > 2) {
                 statusText.innerText = 'PROCESSING...';
@@ -400,52 +528,133 @@
             const cpu = Math.floor(Math.random() * 15) + 10; 
             const temp = Math.floor(Math.random() * 3) + 21;
             document.getElementById('cpu-val').innerText = cpu + '%';
-            document.getElementById('temp-val').innerText = temp + '°C';
+            document.getElementById('temp-val').innerText = temp + '\u00b0C';
         }, 3000);
 
         // Poll brain state every 2 seconds
         setInterval(fetchBrainState, 2000);
         fetchBrainState();
 
-        // Command Console Input handler
+        // ============== Command Input ==============
         const cmdInput = document.getElementById('cmdInput');
+        const listeningEl = document.getElementById('listening-text');
+
+        function sendCommand(command) {
+            if (!command) return;
+            addChatEntry('user', command);
+            listeningEl.innerText = 'Processing...';
+
+            fetch('/api/command', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({command: command})
+            })
+            .then(r => r.json())
+            .then(data => {
+                const response = data.response || 'Command processed.';
+                addChatEntry('jarvis', response);
+                listeningEl.innerText = response;
+            })
+            .catch(err => {
+                const msg = 'Command relay error: ' + err.message;
+                addChatEntry('system', msg);
+                listeningEl.innerText = 'Link error, sir.';
+            });
+        }
+
         cmdInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 const command = this.value.trim();
                 if (command.toLowerCase() === 'clear') {
+                    chatLog.innerHTML = '';
                     this.value = '';
-                } else if (command !== '') {
-                    fetch('/api/command', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({command: command})
-                    }).then(r => r.json()).then(data => {
-                        const listeningEl = document.getElementById('listening-text');
-                        listeningEl.innerText = data.response || 'Command processed.';
-                        setTimeout(() => {
-                            listeningEl.innerText = 'Listening...';
-                        }, 3000);
-                    }).catch(() => {
-                        alert('Command relay: ' + command.toUpperCase());
-                    });
+                    return;
+                }
+                if (command !== '') {
+                    sendCommand(command);
                     this.value = '';
                 }
             }
         });
 
-        // Click interaction on Mic element
-        const micBtn = document.getElementById('micBtn');
-        micBtn.addEventListener('click', () => {
-            const textElement = document.getElementById('listening-text');
-            textElement.innerText = 'Processing Voice Grid...';
-            textElement.style.color = '#ffffff';
-            setTimeout(() => {
-                textElement.innerText = 'Listening...';
-                textElement.style.color = 'var(--neon-cyan)';
-            }, 2000);
+        // ============== Voice Input (Web Speech API) ==============
+        const voiceBtn = document.getElementById('voiceBtn');
+        let recognition = null;
+        let isListening = false;
+
+        function initSpeechRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                voiceBtn.style.opacity = '0.3';
+                voiceBtn.title = 'Voice input not supported in this browser';
+                return null;
+            }
+            const rec = new SpeechRecognition();
+            rec.continuous = false;
+            rec.interimResults = false;
+            rec.lang = 'en-US';
+            return rec;
+        }
+
+        voiceBtn.addEventListener('click', function() {
+            if (isListening) {
+                if (recognition) {
+                    recognition.stop();
+                }
+                return;
+            }
+
+            if (!recognition) {
+                recognition = initSpeechRecognition();
+                if (!recognition) {
+                    listeningEl.innerText = 'Voice input unsupported in this browser, sir.';
+                    return;
+                }
+            }
+
+            recognition.onstart = function() {
+                isListening = true;
+                voiceBtn.classList.add('listening');
+                listeningEl.innerText = 'Listening via microphone...';
+                cmdInput.placeholder = 'Listening...';
+            };
+
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript.trim();
+                if (transcript) {
+                    cmdInput.value = transcript;
+                    sendCommand(transcript);
+                }
+            };
+
+            recognition.onerror = function(event) {
+                console.error('Speech recognition error:', event.error);
+                listeningEl.innerText = 'Voice input error: ' + event.error;
+                stopListening();
+            };
+
+            recognition.onend = function() {
+                stopListening();
+            };
+
+            try {
+                recognition.start();
+            } catch (e) {
+                listeningEl.innerText = 'Microphone access denied, sir.';
+                stopListening();
+            }
         });
 
-        // SSE stream for live updates
+        function stopListening() {
+            isListening = false;
+            voiceBtn.classList.remove('listening');
+            cmdInput.placeholder = 'Type a command...';
+            if (listeningEl.innerText === 'Listening via microphone...') {
+                listeningEl.innerText = 'Listening...';
+            }
+        }
+
+        // ============== SSE Stream ==============
         if (!!window.EventSource) {
             const source = new EventSource('/api/stream');
             source.onmessage = function(e) {

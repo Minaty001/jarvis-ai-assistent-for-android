@@ -13,7 +13,7 @@ async def test_execute_unknown_protocol():
 async def test_execute_house_party_protocol():
     proto = ProtocolPipeline()
     res = await proto.execute_protocol("house_party")
-    assert "House Party Protocol initiated" in res
+    assert "House Party Protocol confirmed" in res
 
 
 @pytest.mark.asyncio

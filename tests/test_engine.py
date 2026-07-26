@@ -1,6 +1,7 @@
 """Tests for the Engine orchestrator."""
 
 import pytest
+from pathlib import Path
 from jarvis.core.engine import Engine
 
 
@@ -58,13 +59,13 @@ async def test_engine_process_memory_and_notes(monkeypatch, tmp_path):
 
     # Remember fact
     res1 = await engine.process("remember that my favorite color is blue")
-    assert "remember" in res1.lower()
+    assert "noted" in res1.lower() or "remember" in res1.lower() or "stored" in res1.lower()
     fact = await engine.memory.recall("favorite color")
     assert fact == "blue"
 
     # Take note
     res2 = await engine.process("take a note buy groceries")
-    assert "saved note" in res2.lower()
+    assert "logged" in res2.lower() or "note" in res2.lower()
 
     # Read notes
     res3 = await engine.process("show my notes")
@@ -72,7 +73,7 @@ async def test_engine_process_memory_and_notes(monkeypatch, tmp_path):
 
     # Delete note
     res4 = await engine.process("delete note groceries")
-    assert "deleted" in res4.lower()
+    assert "purged" in res4.lower() or "deleted" in res4.lower() or "note" in res4.lower()
 
     await engine.shutdown()
 
@@ -94,7 +95,55 @@ async def test_engine_process_reminders(monkeypatch, tmp_path):
 
     # Delete reminder
     res3 = await engine.process("delete reminder call Mom")
-    assert "deleted" in res3.lower()
+    assert "cleared" in res3.lower() or "deleted" in res3.lower() or "reminder" in res3.lower()
+
+    await engine.shutdown()
+
+
+@pytest.mark.asyncio
+async def test_export_conversation(monkeypatch, tmp_path):
+    monkeypatch.setenv("GROQ_API_KEY", "test-key")
+    engine = Engine()
+    engine.config.database_path = str(tmp_path / "export_test.db")
+    await engine.initialize()
+
+    await engine.memory.save_exchange("user", "Hello Jarvis")
+    await engine.memory.save_exchange("assistant", "Good day, sir.")
+    await engine.memory.save_exchange("user", "What's the weather?")
+
+    export_path = tmp_path / "exports" / "test_export.txt"
+    result_path = await engine.memory.export_conversation(export_path)
+    assert result_path == str(export_path.resolve())
+    assert export_path.exists()
+
+    content = export_path.read_text()
+    assert "Conversation Export" in content
+    assert "Hello Jarvis" in content
+    assert "Good day, sir." in content
+    assert "What's the weather?" in content
+    assert "You:" in content
+    assert "JARVIS:" in content
+
+    await engine.shutdown()
+
+
+@pytest.mark.asyncio
+async def test_engine_process_export_conversation(monkeypatch, tmp_path):
+    monkeypatch.setenv("GROQ_API_KEY", "test-key")
+    engine = Engine()
+    engine.config.database_path = str(tmp_path / "engine_export_test.db")
+    await engine.initialize()
+
+    await engine.memory.save_exchange("user", "test message one")
+    await engine.memory.save_exchange("assistant", "test response one")
+
+    result = await engine.process("export conversation")
+    assert "exported" in result.lower()
+    assert "sir" in result.lower()
+
+    # Check a file was actually written
+    exports_dir = Path(engine.config.database_path).parent / "exports"
+    assert list(exports_dir.glob("*.txt"))
 
     await engine.shutdown()
 

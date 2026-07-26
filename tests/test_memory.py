@@ -111,3 +111,47 @@ async def test_reminders_crud(mem):
 
     rems_after = await mem.get_reminders()
     assert len(rems_after) == 0
+
+
+@pytest.mark.asyncio
+async def test_search_conversation(mem):
+    await mem.save_exchange("user", "Hello Jarvis, what's the weather?")
+    await mem.save_exchange("assistant", "The weather is sunny today.")
+    await mem.save_exchange("user", "Set a timer for 5 minutes")
+    await mem.save_exchange("assistant", "Timer set for 5 minutes.")
+
+    results = await mem.search_conversation("weather")
+    assert len(results) >= 2
+    assert any("weather" in r["content"].lower() for r in results)
+
+    results_none = await mem.search_conversation("nonexistent")
+    assert len(results_none) == 0
+
+
+@pytest.mark.asyncio
+async def test_export_conversation(mem, tmp_path):
+    await mem.save_exchange("user", "Hello")
+    await mem.save_exchange("assistant", "Hi, sir.")
+    await mem.save_exchange("user", "Set a timer")
+
+    export_file = tmp_path / "chat_export.txt"
+    result_path = await mem.export_conversation(export_file)
+
+    assert export_file.exists()
+    assert result_path == str(export_file.resolve())
+    content = export_file.read_text()
+    assert "Conversation Export" in content
+    assert "Hello" in content
+    assert "Hi, sir." in content
+    assert "Set a timer" in content
+    assert "You:" in content
+    assert "JARVIS:" in content
+
+
+@pytest.mark.asyncio
+async def test_export_conversation_empty(mem, tmp_path):
+    export_file = tmp_path / "empty_export.txt"
+    result_path = await mem.export_conversation(export_file)
+    assert export_file.exists()
+    content = export_file.read_text()
+    assert "Total exchanges: 0" in content

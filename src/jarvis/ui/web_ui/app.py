@@ -3,6 +3,7 @@ Crafted by Minaty001."""
 
 from __future__ import annotations
 
+import asyncio
 import json
 import math
 import time
@@ -16,6 +17,8 @@ from jarvis.core.intent import classify_intent
 app = Flask(__name__)
 
 # In-memory engine reference (set externally)
+_engine_ref: Any = None
+_last_response: str = ""
 _engine_loop: Optional[asyncio.AbstractEventLoop] = None
 
 

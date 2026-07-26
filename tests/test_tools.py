@@ -4,7 +4,17 @@ from jarvis.core.engine import Engine
 
 
 def test_tool_schemas_validity():
-    assert len(JARVIS_TOOL_SCHEMAS) >= 5
+    assert len(JARVIS_TOOL_SCHEMAS) >= 9
+    names = [t["function"]["name"] for t in JARVIS_TOOL_SCHEMAS]
+    assert "get_weather" in names
+    assert "system_telemetry" in names
+    assert "execute_protocol" in names
+    assert "set_timer" in names
+    assert "web_search_intel" in names
+    assert "copy_clipboard" in names
+    assert "get_clipboard" in names
+    assert "take_note" in names
+    assert "view_reminders" in names
     for tool in JARVIS_TOOL_SCHEMAS:
         assert tool["type"] == "function"
         assert "name" in tool["function"]
@@ -34,7 +44,7 @@ async def test_execute_llm_tool_call():
         }
     }
     res_telem = await execute_llm_tool_call(engine, tool_call_telem)
-    assert "JARVIS System Telemetry" in res_telem
+    assert "DIAGNOSTIC REPORT" in res_telem or "POWER SYSTEMS" in res_telem
 
     tool_call_proto = {
         "function": {
@@ -44,5 +54,29 @@ async def test_execute_llm_tool_call():
     }
     res_proto = await execute_llm_tool_call(engine, tool_call_proto)
     assert "Stealth Mode engaged" in res_proto
+
+    await engine.shutdown()
+
+
+@pytest.mark.asyncio
+async def test_execute_new_tools():
+    """Test the new tool handlers: get_clipboard, take_note, view_reminders."""
+    engine = Engine()
+    await engine.initialize()
+
+    # get_clipboard
+    tc_clip = {"function": {"name": "get_clipboard", "arguments": "{}"}}
+    res_clip = await execute_llm_tool_call(engine, tc_clip)
+    assert isinstance(res_clip, str)
+
+    # take_note
+    tc_note = {"function": {"name": "take_note", "arguments": '{"content": "test note content"}'}}
+    res_note = await execute_llm_tool_call(engine, tc_note)
+    assert "saved" in res_note.lower()
+
+    # view_reminders
+    tc_rem = {"function": {"name": "view_reminders", "arguments": "{}"}}
+    res_rem = await execute_llm_tool_call(engine, tc_rem)
+    assert isinstance(res_rem, str)
 
     await engine.shutdown()
