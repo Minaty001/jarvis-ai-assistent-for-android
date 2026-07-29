@@ -52,38 +52,44 @@ The assistant is built as **11 independent pipelines**, each mapped to a brain c
 
 ### Prerequisites
 
-- Android device with [Termux](https://termux.com/) installed
-- [Termux:API](https://wiki.termux.com/wiki/Termux:API) add-on
-- Python 3.11+
-- [Piper TTS](https://github.com/rhasspy/piper) (optional, for local TTS)
-- `edge-tts` auto-installs with the package (free cloud TTS, no key needed)
 - **Groq API key** for STT and LLM ([get one free](https://console.groq.com))
-- **OpenAI API key** (optional, for LLM fallback)
+- **OpenAI API key** (optional, fallback LLM)
+- For native audio/wake word detection: microphone access, `portaudio` package installed locally.
 
-### Setup
+### Setup & Run (Standard Script Setup)
 
-```bash
-# Clone the repository
-git clone https://github.com/Minaty001/jarvis-ai-assistent-for-android
-cd jarvis-ai-assistent-for-android
+We provide automated setup scripts for each platform to install dependencies, construct a virtual environment, and configure environment templates:
 
-# Create virtual environment
-python -m venv .venv
-source .venv/bin/activate
+* **Android Termux (Native)**:
+  ```bash
+  chmod +x scripts/setup_termux.sh
+  ./scripts/setup_termux.sh
+  ```
+* **Linux (Debian/Ubuntu)**:
+  ```bash
+  chmod +x scripts/setup_linux.sh
+  ./scripts/setup_linux.sh
+  ```
+* **Windows (PowerShell)**:
+  ```powershell
+  .\scripts\setup_windows.ps1
+  ```
 
-# Install dependencies
-pip install -r requirements.txt
+Once setup finishes, edit your `.env` configuration file to input your `GROQ_API_KEY`.
 
-# For microphone capture (optional, for voice mode)
-pip install sounddevice numpy
+### Setup & Run (Docker Container setup)
 
-# Configure
-cp .env.example .env
-# Edit .env and add your GROQ_API_KEY (and optional OPENAI_API_KEY)
+If you prefer running inside an isolated Docker container (ideal for Linux/Windows servers where you want the Flask Web UI):
 
-# Run
-python -m jarvis
-```
+1. Edit `.env` to configure your API keys.
+2. Build and run via Docker Compose:
+   ```bash
+   docker-compose up --build -d
+   ```
+3. Access the browser UI at `http://localhost:5000`.
+
+For detailed target OS options and troubleshooting, see the [Deployment and Run Guide](docs/deployment.md).
+
 
 ## Usage
 
@@ -205,33 +211,18 @@ The assistant continues working even when components are unavailable:
 - [Architecture](docs/architecture.md) — App flow, tech stack, folder structure
 - [Memory Pipeline](docs/memory.md) — Database schema and API reference
 
-## Termux Deployment
+## Multi-Platform Deployment
 
-This project targets Android Termux as the primary runtime. Quick steps and automation scripts were added to the session workspace to simplify on-device setup and runtime fallbacks.
+For comprehensive deployment instructions across Windows, Linux, and Android Termux, please refer to the detailed [Deployment and Run Guide](docs/deployment.md).
 
-Recommended Termux workflow
+### Quick Start scripts:
+- **Android Termux**: Execute `./scripts/setup_termux.sh`
+- **Linux**: Execute `./scripts/setup_linux.sh`
+- **Windows**: Execute `.\scripts\setup_windows.ps1`
+- **Docker Compose**: Execute `docker-compose up --build -d`
 
-1. On the Android device, install Termux and the Termux:API add-on (F-Droid).
-2. Transfer or clone this repo to $HOME/jarvis-ai-assistent-for-android.
-3. From Termux, run the included installer to create a venv and install deps:
+All tools are configured to degrade gracefully if a hardware microphone or specific TTS driver is unavailable.
 
-```bash
-# from the session-state folder where the scripts were created
-bash .copilot/session-state/<session-id>/install-termux.sh
-```
-
-4. Activate the venv and run the assistant (defaults to text/no-voice to avoid native audio build issues):
-
-```bash
-source ~/.venv/jarvis/bin/activate
-bash .copilot/session-state/<session-id>/run-termux.sh --text
-```
-
-Notes
-
-- The installer is best-effort: native packages (sounddevice, numpy, vosk) may fail to build on Termux. The code includes fallbacks to Termux binaries (termux-microphone-record, termux-tts-speak) when available.
-- Runtime detection was added (src/jarvis/core/config.py) to log is_termux, termux_api availability, and available TTS tools. The engine warns if Termux is detected but termux-api binaries are missing.
-- For a standalone APK, prefer a hybrid app (Android native UI + remote Jarvis service). Chaquopy / python-for-android are possible but native modules complicate offline APK builds.
 
 ## Running Tests
 
