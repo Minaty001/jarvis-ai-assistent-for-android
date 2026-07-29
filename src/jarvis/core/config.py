@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import shutil
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -37,8 +38,14 @@ class Config:
     tts_rate: int = field(default_factory=lambda: int(os.getenv("TTS_RATE", "175")))
     tts_pitch: int = field(default_factory=lambda: int(os.getenv("TTS_PITCH", "100")))
 
+    # Runtime environment detections (useful for Termux fallbacks)
+    is_termux: bool = field(default_factory=lambda: bool(os.getenv("TERMUX_VERSION") or Path("/data/data/com.termux").exists()))
+    termux_api_available: bool = field(default_factory=lambda: shutil.which("termux-microphone-record") is not None and shutil.which("termux-tts-speak") is not None)
+    has_piper: bool = field(default_factory=lambda: shutil.which("piper") is not None)
+    has_edge_tts: bool = field(default_factory=lambda: shutil.which("paplay") is not None or shutil.which("play") is not None)
+
     def __post_init__(self) -> None:
-        """Ensure required directories exist."""
+        """Ensure required directories exist and log environment hints."""
         for d in [self.models_dir, self.voices_dir, self.logs_dir, str(BASE_DIR / "data")]:
             Path(d).mkdir(parents=True, exist_ok=True)
 

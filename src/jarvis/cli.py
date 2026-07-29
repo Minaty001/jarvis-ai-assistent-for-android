@@ -55,6 +55,15 @@ def build_parser() -> argparse.ArgumentParser:
 
 async def run_once(query: str) -> None:
     """Process a single query and print the response."""
+    # Log environment detections for one-off runs as well
+    try:
+        log.info(
+            f"Environment: is_termux={config.is_termux}, termux_api_available={config.termux_api_available}, "
+            f"has_piper={config.has_piper}, has_edge_tts={config.has_edge_tts}"
+        )
+    except Exception:
+        pass
+
     engine = Engine()
     await engine.initialize(silent_boot=True)
     try:
@@ -75,6 +84,16 @@ async def run_interactive(
         log.info("Starting in text-only mode.")
     if no_voice:
         log.info("Voice output disabled by user request.")
+
+    # Log environment detections (Termux/runtime fallbacks)
+    try:
+        log.info(
+            f"Environment: is_termux={config.is_termux}, termux_api_available={config.termux_api_available}, "
+            f"has_piper={config.has_piper}, has_edge_tts={config.has_edge_tts}"
+        )
+    except Exception:
+        # Be defensive: config may not have attributes in older versions
+        pass
 
     engine = Engine()
     await engine.initialize(no_voice=no_voice)

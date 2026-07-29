@@ -171,6 +171,16 @@ class Engine:
         # Load STT model (non-blocking if not available)
         await self.speech.load_model()
 
+        # If running on Termux but Termux:API binaries are missing, warn the user
+        try:
+            if app_config.is_termux and not app_config.termux_api_available:
+                log.warning(
+                    "Termux environment detected but Termux:API binaries (termux-microphone-record/termux-tts-speak) are not available. "
+                    "Install the Termux:API add-on to enable device features and voice fallbacks."
+                )
+        except Exception:
+            pass
+
         log.info("Engine initialized — all 11 cortical pipelines loaded.")
 
         # Boot greeting

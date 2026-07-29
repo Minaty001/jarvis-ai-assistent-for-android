@@ -205,6 +205,34 @@ The assistant continues working even when components are unavailable:
 - [Architecture](docs/architecture.md) — App flow, tech stack, folder structure
 - [Memory Pipeline](docs/memory.md) — Database schema and API reference
 
+## Termux Deployment
+
+This project targets Android Termux as the primary runtime. Quick steps and automation scripts were added to the session workspace to simplify on-device setup and runtime fallbacks.
+
+Recommended Termux workflow
+
+1. On the Android device, install Termux and the Termux:API add-on (F-Droid).
+2. Transfer or clone this repo to $HOME/jarvis-ai-assistent-for-android.
+3. From Termux, run the included installer to create a venv and install deps:
+
+```bash
+# from the session-state folder where the scripts were created
+bash .copilot/session-state/<session-id>/install-termux.sh
+```
+
+4. Activate the venv and run the assistant (defaults to text/no-voice to avoid native audio build issues):
+
+```bash
+source ~/.venv/jarvis/bin/activate
+bash .copilot/session-state/<session-id>/run-termux.sh --text
+```
+
+Notes
+
+- The installer is best-effort: native packages (sounddevice, numpy, vosk) may fail to build on Termux. The code includes fallbacks to Termux binaries (termux-microphone-record, termux-tts-speak) when available.
+- Runtime detection was added (src/jarvis/core/config.py) to log is_termux, termux_api availability, and available TTS tools. The engine warns if Termux is detected but termux-api binaries are missing.
+- For a standalone APK, prefer a hybrid app (Android native UI + remote Jarvis service). Chaquopy / python-for-android are possible but native modules complicate offline APK builds.
+
 ## Running Tests
 
 ```bash
