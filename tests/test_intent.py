@@ -1,7 +1,7 @@
 """Tests for the intent classifier."""
 
 import pytest
-from jarvis.core.intent import classify_intent
+from brain.intent import classify_intent
 
 
 class TestIntentClassifier:

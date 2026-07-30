@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Memory pipeline (`pipelines/memory.py`) provides persistent storage for the Jarvis assistant. It is the **Hippocampus** cortical region — responsible for encoding, storing, and retrieving information across sessions.
+The Memory pipeline (`memory/storage.py`) provides persistent storage for the Jarvis assistant. It is the **Hippocampus** cortical region — responsible for encoding, storing, and retrieving information across sessions.
 
 Backed by SQLite with an async interface (`aiosqlite`) and a synchronous fallback (`sqlite3`). Supports 7 tables covering conversation history, user facts, notes, reminders, clipboard history, location logs, and custom voice commands — with keyword search and full export capabilities.
 
@@ -199,7 +199,3 @@ prompt, messages = await memory.build_context("what's my name?")
 # Recall a specific fact
 name = await memory.recall("name")  # "Minaty001"
 ```
-
-## Graceful Degradation
-
-If `aiosqlite` is not installed, the pipeline falls back to `sqlite3` (stdlib). If the database cannot be opened or written to, errors are logged and the conversation continues without persistence — the assistant remains functional.

@@ -1,5 +1,5 @@
 import pytest
-from jarvis.modules.telemetry import TelemetryPipeline
+from brain.telemetry import TelemetryPipeline
 
 
 @pytest.mark.asyncio

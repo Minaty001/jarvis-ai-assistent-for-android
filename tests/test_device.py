@@ -1,7 +1,7 @@
 """Tests for the Device pipeline (Termux:API control)."""
 
 import pytest
-from jarvis.services.device import DevicePipeline
+from actions.android import DevicePipeline
 
 
 @pytest.mark.asyncio

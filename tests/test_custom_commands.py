@@ -1,7 +1,7 @@
 import pytest
-from jarvis.services.storage import MemoryPipeline
-from jarvis.core.engine import Engine
-from jarvis.core.intent import classify_intent
+from memory.storage import MemoryPipeline
+from brain.engine import Engine
+from brain.intent import classify_intent
 
 
 @pytest.mark.asyncio

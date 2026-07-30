@@ -1,5 +1,5 @@
 import pytest
-from jarvis.core.engine import Engine
+from brain.engine import Engine
 
 
 @pytest.mark.asyncio

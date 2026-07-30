@@ -8,9 +8,9 @@ This guide details how to build, deploy, and run the Jarvis AI Assistant across 
 
 | Platform | Without Docker (Local) | With Docker |
 | :--- | :--- | :--- |
-| **Android Termux** | `./scripts/setup_termux.sh` && `python -m jarvis` | *Not recommended natively (requires root/Proot)* |
-| **Linux** | `./scripts/setup_linux.sh` && `python -m jarvis --web` | `docker-compose up --build -d` |
-| **Windows** | `.\scripts\setup_windows.ps1` && `python -m jarvis` | `docker-compose up --build -d` |
+| **Android Termux** | `./setup_termux.sh` && `./start.sh` | *Not recommended natively (requires root/Proot)* |
+| **Linux** | `pip install -e .` && `./start.sh --web --text` | `docker-compose up --build -d` |
+| **Windows** | `pip install -e .` && `python -m app --web --text` | `docker-compose up --build -d` |
 
 ---
 
@@ -23,38 +23,32 @@ Android Termux runs the assistant directly using Termux packages and Python.
    - Download **Termux** and **Termux:API** from F-Droid (do not use Google Play versions as they are outdated).
    - In Termux, run:
      ```bash
-     chmod +x scripts/setup_termux.sh
-     ./scripts/setup_termux.sh
+     chmod +x setup_termux.sh
+     ./setup_termux.sh
      ```
 2. **Launch**:
    ```bash
-   source .venv/bin/activate
-   python -m jarvis
+   ./start.sh
    ```
 
 ### Linux (Ubuntu/Debian)
-1. **Run Installation Script**:
+1. **Install Package**:
    ```bash
-   chmod +x scripts/setup_linux.sh
-   ./scripts/setup_linux.sh
+   .venv/bin/pip install -e ".[stt,dev]"
    ```
 2. **Launch**:
    ```bash
-   source .venv/bin/activate
-   python -m jarvis --web --text
+   ./start.sh --web --text
    ```
 
 ### Windows (Native)
-1. **Run Setup PowerShell Script**:
-   Open PowerShell in the project directory and run:
+1. **Install Package**:
    ```powershell
-   Unblock-File .\scripts\setup_windows.ps1
-   .\scripts\setup_windows.ps1
+   .venv\Scripts\pip install -e ".[stt,dev]"
    ```
 2. **Launch**:
    ```powershell
-   .\.venv\Scripts\Activate.ps1
-   python -m jarvis --web --text
+   .venv\Scripts\python -m app --web --text
    ```
 
 ---
@@ -96,8 +90,8 @@ If you prefer running without Compose:
 
 ## 3. Configuration (`.env`)
 
-Whichever way you deploy, create a `.env` file from the template and fill in your keys:
+Create a `.env` file from the template and fill in your keys:
 ```bash
 cp .env.example .env
 ```
-Ensure to add your `GROQ_API_KEY` to enable the primary LLM pipeline.
+Ensure to add your `GROQ_API_KEY` to enable the primary LLM reasoning.

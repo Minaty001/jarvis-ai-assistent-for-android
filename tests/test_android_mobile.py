@@ -1,7 +1,7 @@
 import pytest
-from jarvis.services.device import DevicePipeline
-from jarvis.services.storage import MemoryPipeline
-from jarvis.core.intent import classify_intent
+from actions.android import DevicePipeline
+from memory.storage import MemoryPipeline
+from brain.intent import classify_intent
 
 
 @pytest.mark.asyncio

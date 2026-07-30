@@ -1,7 +1,7 @@
 """Tests for Config dynamic environment variable loading."""
 
 import pytest
-from jarvis.core.config import Config
+from config.settings import Config
 
 
 def test_config_dynamic_env_loading(monkeypatch):

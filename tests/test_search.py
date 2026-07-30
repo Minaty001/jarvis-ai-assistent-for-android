@@ -1,5 +1,5 @@
 import pytest
-from jarvis.modules.search import SearchPipeline
+from actions.browser.search import SearchPipeline
 
 
 @pytest.mark.asyncio

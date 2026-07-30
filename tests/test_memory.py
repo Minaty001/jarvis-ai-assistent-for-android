@@ -1,7 +1,7 @@
 """Tests for the Memory pipeline (SQLite storage)."""
 
 import pytest
-from jarvis.services.storage import MemoryPipeline
+from memory.storage import MemoryPipeline
 
 
 @pytest.fixture

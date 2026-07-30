@@ -1,8 +1,8 @@
 """Tests for the Chat pipeline (multi-provider LLM)."""
 
 import pytest
-from jarvis.services.chat import ChatPipeline
-from jarvis.core.config import config
+from ai.chat import ChatPipeline
+from config.settings import config
 
 
 @pytest.mark.asyncio

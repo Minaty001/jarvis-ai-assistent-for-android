@@ -15,7 +15,7 @@ A voice-controlled AI assistant for Android (Termux) built with a brain-inspired
 
 - **Android power users** who want hands-free device control (apps, settings, flashlight, wifi, bluetooth, etc.)
 - **Termux users** looking for an extensible, voice-driven assistant
-- **Developers** interested in modular AI pipeline architectures with graceful degradation
+- **Developers** interested in modular AI architectures with graceful degradation
 
 ## 3. Problem Statement
 
@@ -42,7 +42,7 @@ Existing Android assistants are closed, cloud-dependent, or not extensible. User
 - Adjust volume and brightness
 - Read battery status, time, date
 - Search Google / YouTube
-- Take notes, set reminders (with Memory pipeline persistence)
+- Take notes, set reminders (with Memory database persistence)
 - Screenshot capture via termux-api
 - Persistent Android notifications via termux-notification
 - Sensor data reading (accelerometer, gyroscope, magnetometer, light, pressure, proximity, humidity)
@@ -80,7 +80,7 @@ Existing Android assistants are closed, cloud-dependent, or not extensible. User
 ### 4.6 Android Native Mobile Ergonomics
 - **Clipboard Management:** Copy generated answers or read clipboard contents via `termux-clipboard-set` and `termux-clipboard-get`.
 - **Haptic Vibration Feedback:** Physical device buzzes via `termux-vibrate`.
-- **Android Toast Overlays:** Non-intrusive popup notifications rendered over active Android apps via `termux-toast`.
+- **Android Toast Overlays:** Popup notifications rendered over active Android apps via `termux-toast`.
 - **GPS & Location Telemetry:** Query real-time GPS coordinates via `termux-location`.
 - **Telephony & Direct SMS:** Direct phone dialing and text message dispatch via `termux-telephony-call` and `termux-sms-send`.
 - **Media Hardware Controls:** Playback controls (`play`, `pause`, `next`, `previous`, `stop`).
@@ -104,54 +104,3 @@ No single component failure crashes the assistant:
 - No Termux:API → descriptive error per action
 - No SQLite → conversation continues without persistence
 - No microphone → text-only mode
-
-## 5. User Stories
-
-| ID | Story |
-|----|-------|
-| US1 | As a user, I want to say "Hey Jarvis" and have the assistant listen for my command. |
-| US2 | As a user, I want to ask "what's the time" and hear the current time spoken back. |
-| US3 | As a user, I want to say "open the camera" and have the camera app launch. |
-| US4 | As a user, I want to ask a general question and get an LLM-generated answer. |
-| US5 | As a user, I want the assistant to remember facts about me across sessions. |
-| US6 | As a user, I want to see the assistant's internal state in a visual brain UI. |
-| US7 | As a user, I want to type commands when voice is not available. |
-| US8 | As a user, I want the assistant to keep working even if one component fails. |
-| US9 | As a user, I want to say "execute house party protocol" to run a security & resource cleanup protocol. |
-| US10 | As a user, I want to ask "suit status" or "system diagnostics" to view real-time CPU, RAM, and battery telemetry. |
-| US11 | As a user, I want to ask "what's the weather" to get live weather telemetry. |
-| US12 | As a user, I want to set countdown timers and be alerted when they expire. |
-| US13 | As a user, I want to take a visual snapshot to inspect images and visual targets hands-free. |
-| US14 | As a user, I want to copy output text to my clipboard or read copied text with "copy text" and "read clipboard". |
-| US15 | As a user, I want to vibrate the device or show toast popups on my Android screen. |
-| US16 | As a user, I want to define custom voice command shortcuts (e.g. "morning briefing") that execute macro actions. |
-| US17 | As a user, I want to hear high-tech audio sound effects on wake word detection and protocol execution. |
-| US18 | As a user, I want proactive background warnings when my phone battery drops low. |
-| US19 | As a user, I want the assistant to automatically fall back to OpenAI if the Groq API is unavailable. |
-| US20 | As a user, I want to set repeating timers (e.g. "remind me every 5 minutes") that fire on a schedule. |
-| US21 | As a user, I want to search my conversation history for past messages. |
-| US22 | As a user, I want to export my full conversation history to a text file. |
-| US23 | As a user, I want to take a screenshot of my device by voice. |
-| US24 | As a user, I want to send persistent Android notifications by voice. |
-| US25 | As a user, I want to toggle airplane mode and do not disturb mode by voice. |
-| US26 | As a user, I want to read sensor data (accelerometer, gyroscope, etc.) by voice. |
-| US27 | As a user, I want to adjust the LLM's temperature and max tokens via configuration. |
-| US28 | As a user, I want to see a scrollable chat log in the web UI alongside the brain visualization. |
-| US29 | As a user, I want to use my browser's microphone to speak commands in the web UI. |
-
-## 6. Non-Goals
-
-- Not a replacement for Google Assistant / Bixby
-- No wake-word model training — uses simple keyword-spotting on Whisper transcriptions
-- No offline STT — all speech recognition is via Groq Whisper API
-- No GUI beyond the terminal TUI and Flask web UI — no native Android app
-- No streaming LLM responses — all responses are generated and returned as complete text
-
-## 7. Success Metrics
-
-| Metric | Target |
-|--------|--------|
-| Intent classification accuracy | >95% on supported intents |
-| STT → response latency | <3s with Groq Whisper + Groq LLM |
-| Tests passing | All tests green (131 passing) |
-| Graceful degradation scenarios | All failure modes handled |

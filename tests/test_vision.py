@@ -1,7 +1,7 @@
 import pytest
 import os
 import tempfile
-from jarvis.modules.vision import VisionPipeline
+from perception.vision import VisionPipeline
 
 
 @pytest.mark.asyncio

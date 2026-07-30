@@ -1,6 +1,6 @@
 import pytest
-from jarvis.core.tools import JARVIS_TOOL_SCHEMAS, execute_llm_tool_call
-from jarvis.core.engine import Engine
+from ai.tools import JARVIS_TOOL_SCHEMAS, execute_llm_tool_call
+from brain.engine import Engine
 
 
 def test_tool_schemas_validity():
