@@ -1,7 +1,7 @@
 """Tests for the Chat pipeline (multi-provider LLM)."""
 
 import pytest
-from jarvis.pipelines.chat import ChatPipeline
+from jarvis.services.chat import ChatPipeline
 from jarvis.core.config import config
 
 

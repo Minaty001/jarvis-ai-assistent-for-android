@@ -1,6 +1,6 @@
 import pytest
 import asyncio
-from jarvis.pipelines.scheduler import SchedulerPipeline
+from jarvis.modules.timers import SchedulerPipeline
 
 
 @pytest.mark.asyncio

@@ -1,5 +1,5 @@
 import pytest
-from jarvis.pipelines.memory import MemoryPipeline
+from jarvis.services.storage import MemoryPipeline
 from jarvis.core.engine import Engine
 from jarvis.core.intent import classify_intent
 

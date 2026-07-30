@@ -14,7 +14,7 @@ from __future__ import annotations
 import asyncio
 from typing import Callable, Awaitable, Dict
 from jarvis.core.config import Config
-from jarvis.pipelines.base import AsyncPipeline
+from jarvis.services.base import AsyncPipeline
 from jarvis.utils.logging import log
 
 

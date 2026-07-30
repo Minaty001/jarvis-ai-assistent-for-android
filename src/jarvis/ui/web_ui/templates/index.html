@@ -2,7 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#020b14">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>J.A.R.V.I.S. Interface</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -10,50 +14,70 @@
             --neon-cyan: #00f0ff;
             --neon-blue: #0077aa;
             --bg-dark: #020b14;
-            --glass-bg: rgba(2, 20, 35, 0.65);
+            --glass-bg: rgba(2, 20, 35, 0.75);
             --glass-border: rgba(0, 240, 255, 0.25);
             --glow-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
+            --sat: env(safe-area-inset-top, 0px);
+            --sab: env(safe-area-inset-bottom, 0px);
+            --sal: env(safe-area-inset-left, 0px);
+            --sar: env(safe-area-inset-right, 0px);
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        body {
+        /* Ensure root containers occupy full viewport without white space */
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
             background-color: var(--bg-dark);
             color: #ffffff;
             font-family: 'Rajdhani', sans-serif;
-            min-height: 100vh;
+        }
+
+        body {
             display: flex;
             justify-content: center;
             align-items: center;
-            overflow-x: hidden;
             background-image: 
-                radial-gradient(circle at 50% 50%, rgba(0, 119, 170, 0.15) 0%, transparent 70%),
-                linear-gradient(rgba(0, 240, 255, 0.02) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 240, 255, 0.02) 1px, transparent 1px);
+                radial-gradient(circle at 50% 50%, rgba(0, 119, 170, 0.22) 0%, transparent 75%),
+                linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
             background-size: 100% 100%, 30px 30px, 30px 30px;
         }
 
-        .phone-wrapper {
+        /* Full Viewport App Wrapper */
+        #app-wrapper {
             width: 100%;
-            max-width: 410px;
-            height: 92vh;
-            max-height: 900px;
-            min-height: 700px;
-            background: rgba(1, 10, 20, 0.95);
-            border-radius: 40px;
-            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 240, 255, 0.1);
-            padding: 30px 20px;
+            height: 100%;
+            max-width: none;
+            max-height: none;
             display: flex;
             flex-direction: column;
             position: relative;
             overflow: hidden;
-            border: 2px solid rgba(0, 240, 255, 0.2);
+            background: rgba(1, 8, 16, 0.96);
+            backdrop-filter: blur(12px);
+            padding: calc(14px + var(--sat)) calc(18px + var(--sar)) calc(14px + var(--sab)) calc(18px + var(--sal));
         }
 
+        /* Responsive Grid Structure */
+        .desktop-grid {
+            display: grid;
+            grid-template-columns: 320px 1fr 400px;
+            gap: 18px;
+            height: calc(100% - 40px);
+            margin-top: 6px;
+        }
+
+        /* Header UI */
         .header {
             text-align: center;
             flex-shrink: 0;
@@ -63,34 +87,35 @@
             font-family: 'Orbitron', sans-serif;
             font-weight: 900;
             font-size: 1.6rem;
-            letter-spacing: 6px;
+            letter-spacing: 5px;
             color: #ffffff;
-            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5), 0 0 20px var(--neon-cyan);
-            margin-bottom: 2px;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.6), 0 0 20px var(--neon-cyan);
+            margin-bottom: 1px;
         }
 
         .header p {
             font-family: 'Orbitron', sans-serif;
-            font-size: 0.6rem;
-            letter-spacing: 2px;
+            font-size: 0.58rem;
+            letter-spacing: 1.8px;
             color: var(--neon-cyan);
             text-shadow: var(--glow-shadow);
             font-weight: 700;
         }
 
-        /* Brain canvas area */
+        /* Core Canvas Container */
         .core-container {
             display: flex;
             justify-content: center;
             align-items: center;
             position: relative;
-            margin: 8px 0 4px 0;
-            height: 160px;
-            border: 1px solid rgba(0, 240, 255, 0.1);
-            border-radius: 8px;
-            background: rgba(0, 5, 12, 0.6);
+            margin: 4px 0;
+            height: 320px;
+            border: 1px solid rgba(0, 240, 255, 0.15);
+            border-radius: 12px;
+            background: rgba(0, 6, 14, 0.7);
             overflow: hidden;
             flex-shrink: 0;
+            box-shadow: inset 0 0 15px rgba(0, 240, 255, 0.05);
         }
 
         #brain-canvas {
@@ -99,15 +124,32 @@
             display: block;
         }
 
+        /* Panels in Grid Layout */
+        .panel-left, .panel-right {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            min-height: 0;
+        }
+
+        .panel-center {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            min-height: 0;
+            justify-content: space-between;
+        }
+
+        /* Status Callout */
         .status-callout {
             text-align: center;
             flex-shrink: 0;
-            margin: 2px 0 6px 0;
+            margin: 2px 0 4px 0;
         }
 
         .status-callout .ready-text {
             font-family: 'Orbitron', sans-serif;
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: 700;
             letter-spacing: 2px;
             color: #fff;
@@ -115,10 +157,10 @@
         }
 
         .status-callout .listening-text {
-            font-size: 0.8rem;
+            font-size: 0.78rem;
             color: var(--neon-cyan);
-            letter-spacing: 1px;
-            opacity: 0.85;
+            letter-spacing: 0.8px;
+            opacity: 0.9;
             margin-top: 2px;
             animation: pulseText 1.5s infinite alternate;
             min-height: 1.2em;
@@ -128,14 +170,16 @@
         /* Chat Log */
         .chat-log {
             flex: 1;
-            min-height: 0;
+            min-height: 120px;
             overflow-y: auto;
-            margin: 6px 0 8px 0;
-            padding: 8px;
-            background: rgba(0, 5, 12, 0.5);
-            border: 1px solid rgba(0, 240, 255, 0.08);
-            border-radius: 6px;
+            margin: 4px 0 6px 0;
+            padding: 10px;
+            background: rgba(0, 6, 14, 0.55);
+            border: 1px solid rgba(0, 240, 255, 0.12);
+            border-radius: 10px;
             scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+            touch-action: pan-y;
         }
 
         .chat-log::-webkit-scrollbar {
@@ -145,90 +189,122 @@
             background: transparent;
         }
         .chat-log::-webkit-scrollbar-thumb {
-            background: rgba(0, 240, 255, 0.2);
+            background: rgba(0, 240, 255, 0.3);
             border-radius: 2px;
         }
 
         .chat-entry {
-            margin-bottom: 8px;
-            padding: 4px 6px;
-            border-left: 2px solid transparent;
+            margin-bottom: 6px;
+            padding: 6px 10px;
+            border-left: 2.5px solid transparent;
+            border-radius: 0 6px 6px 0;
+            background: rgba(0, 240, 255, 0.02);
             animation: fadeIn 0.2s ease;
         }
 
         .chat-entry.user {
             border-left-color: var(--neon-cyan);
+            background: rgba(0, 240, 255, 0.05);
         }
         .chat-entry.jarvis {
-            border-left-color: rgba(0, 255, 136, 0.6);
+            border-left-color: #00ff88;
+            background: rgba(0, 255, 136, 0.04);
         }
         .chat-entry.system {
-            border-left-color: rgba(255, 170, 0, 0.6);
-            opacity: 0.7;
-            font-size: 0.8rem;
+            border-left-color: rgba(255, 170, 0, 0.8);
+            opacity: 0.8;
+            font-size: 0.78rem;
         }
 
         .chat-entry .entry-role {
             font-family: 'Orbitron', sans-serif;
-            font-size: 0.65rem;
+            font-size: 0.62rem;
             letter-spacing: 1px;
-            opacity: 0.6;
-            margin-bottom: 1px;
+            opacity: 0.75;
+            margin-bottom: 2px;
         }
         .chat-entry.user .entry-role { color: var(--neon-cyan); }
         .chat-entry.jarvis .entry-role { color: #00ff88; }
 
         .chat-entry .entry-text {
-            font-size: 0.85rem;
-            line-height: 1.3;
-            color: rgba(255, 255, 255, 0.85);
+            font-size: 0.88rem;
+            line-height: 1.4;
+            color: rgba(255, 255, 255, 0.9);
             word-wrap: break-word;
         }
 
         .chat-entry.jarvis .entry-text {
-            color: rgba(0, 255, 136, 0.9);
+            color: rgba(0, 255, 136, 0.95);
         }
 
-        /* HUD Grid */
-        .hud-grid-2x2 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
+        /* Quick Action Chips */
+        .quick-chips {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            margin-bottom: 4px;
             flex-shrink: 0;
-            margin-bottom: 6px;
+            -webkit-overflow-scrolling: touch;
         }
 
+        .quick-chips::-webkit-scrollbar {
+            display: none;
+        }
+
+        .chip {
+            flex-shrink: 0;
+            background: rgba(0, 240, 255, 0.08);
+            border: 1px solid rgba(0, 240, 255, 0.25);
+            border-radius: 12px;
+            padding: 4px 10px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.6rem;
+            color: var(--neon-cyan);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .chip:active, .chip:hover {
+            background: rgba(0, 240, 255, 0.25);
+            transform: scale(0.96);
+        }
+
+        /* HUD Cards */
         .hud-card {
             background: var(--glass-bg);
             border: 1px solid var(--glass-border);
-            border-radius: 6px;
-            padding: 8px;
+            border-radius: 8px;
+            padding: 8px 10px;
             position: relative;
             box-shadow: inset 0 0 10px rgba(0, 240, 255, 0.05);
+            margin-bottom: 8px;
         }
 
         .hud-card::before {
             content: '';
             position: absolute;
-            top: 0; left: 0; width: 4px; height: 4px;
+            top: 0; left: 0; width: 5px; height: 5px;
             border-top: 1.5px solid var(--neon-cyan);
             border-left: 1.5px solid var(--neon-cyan);
         }
 
         .card-title {
-            font-size: 0.65rem;
+            font-size: 0.62rem;
             font-weight: 700;
-            letter-spacing: 1px;
+            letter-spacing: 0.8px;
             color: #ffffff;
             margin-bottom: 4px;
             border-bottom: 1px solid rgba(0, 240, 255, 0.15);
-            padding-bottom: 2px;
+            padding-bottom: 3px;
+            font-family: 'Orbitron', sans-serif;
         }
 
         .card-row {
             font-size: 0.75rem;
-            color: rgba(255, 255, 255, 0.75);
-            line-height: 1.3;
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.4;
             display: flex;
             justify-content: space-between;
         }
@@ -238,20 +314,16 @@
             font-weight: 600;
         }
 
-        .full-width {
-            grid-column: span 2;
-        }
-
         /* Stats Bar */
         .stats-inline-bar {
-            background: rgba(2, 15, 28, 0.8);
+            background: rgba(2, 15, 28, 0.85);
             border: 1px solid rgba(0, 240, 255, 0.15);
-            border-radius: 4px;
-            padding: 4px 8px;
+            border-radius: 6px;
+            padding: 6px 10px;
             display: flex;
             justify-content: space-between;
             font-size: 0.62rem;
-            color: rgba(255, 255, 255, 0.7);
+            color: rgba(255, 255, 255, 0.75);
             flex-shrink: 0;
             margin-bottom: 6px;
             font-family: 'Orbitron', sans-serif;
@@ -266,15 +338,15 @@
             display: flex;
             gap: 8px;
             flex-shrink: 0;
-            margin-bottom: 6px;
+            align-items: center;
         }
 
         .command-box {
             flex: 1;
-            background: rgba(0, 15, 25, 0.8);
-            border: 1px solid var(--neon-cyan);
-            border-radius: 4px;
-            padding: 8px 10px;
+            background: rgba(0, 15, 25, 0.85);
+            border: 1.5px solid var(--neon-cyan);
+            border-radius: 8px;
+            padding: 8px 12px;
             display: flex;
             align-items: center;
             box-shadow: 0 0 10px rgba(0, 240, 255, 0.1);
@@ -282,7 +354,7 @@
 
         .command-label {
             font-family: 'Orbitron', sans-serif;
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             color: var(--neon-cyan);
             font-weight: 700;
             margin-right: 6px;
@@ -296,45 +368,45 @@
             outline: none;
             color: #ffffff;
             font-family: 'Rajdhani', sans-serif;
-            font-size: 0.85rem;
+            font-size: 16px;
             width: 100%;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
         }
 
         .command-input::placeholder {
-            color: rgba(255, 255, 255, 0.3);
+            color: rgba(255, 255, 255, 0.35);
         }
 
-        /* Voice button */
         .voice-btn {
             flex-shrink: 0;
-            width: 42px;
-            height: 42px;
-            background: rgba(0, 240, 255, 0.08);
-            border: 1px solid var(--neon-cyan);
+            width: 46px;
+            height: 46px;
+            background: rgba(0, 240, 255, 0.1);
+            border: 1.5px solid var(--neon-cyan);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
+            box-shadow: 0 0 10px rgba(0, 240, 255, 0.15);
         }
 
-        .voice-btn:hover {
-            background: rgba(0, 240, 255, 0.2);
-            box-shadow: 0 0 15px var(--neon-cyan);
+        .voice-btn:active {
+            transform: scale(0.92);
+            background: rgba(0, 240, 255, 0.3);
         }
 
         .voice-btn.listening {
-            background: rgba(255, 51, 0, 0.25);
+            background: rgba(255, 51, 0, 0.3);
             border-color: #ff3300;
-            box-shadow: 0 0 20px rgba(255, 51, 0, 0.5);
+            box-shadow: 0 0 20px rgba(255, 51, 0, 0.6);
             animation: pulseMic 1s infinite alternate;
         }
 
         .voice-btn svg {
-            width: 18px;
-            height: 18px;
+            width: 22px;
+            height: 22px;
             fill: var(--neon-cyan);
             filter: drop-shadow(0 0 3px var(--neon-cyan));
         }
@@ -344,126 +416,142 @@
             filter: drop-shadow(0 0 5px #ff3300);
         }
 
-        /* Animations */
+        /* Clean Mobile Responsive Media Query */
+        @media (max-width: 768px) {
+            .desktop-grid {
+                display: flex;
+                flex-direction: column;
+                height: calc(100% - 36px);
+            }
+            .panel-left {
+                display: none;
+            }
+            .core-container {
+                height: 140px;
+            }
+        }
+
         @keyframes pulseText {
-            from { opacity: 0.4; text-shadow: 0 0 2px var(--neon-cyan); }
+            from { opacity: 0.5; text-shadow: 0 0 2px var(--neon-cyan); }
             to { opacity: 1; text-shadow: 0 0 8px var(--neon-cyan); }
         }
 
         @keyframes pulseMic {
             from { box-shadow: 0 0 10px rgba(255, 51, 0, 0.3); }
-            to { box-shadow: 0 0 25px rgba(255, 51, 0, 0.7); }
+            to { box-shadow: 0 0 25px rgba(255, 51, 0, 0.8); }
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-4px); }
+            from { opacity: 0; transform: translateY(-3px); }
             to { opacity: 1; transform: translateY(0); }
-        }
-
-        .nav-ticks {
-            display: flex;
-            justify-content: center;
-            gap: 25px;
-            flex-shrink: 0;
-            opacity: 0.4;
-        }
-        .tick {
-            width: 15px;
-            height: 2px;
-            background: #fff;
-        }
-
-        /* Mobile responsive */
-        @media (max-width: 430px) {
-            .phone-wrapper {
-                max-width: 100%;
-                height: 100vh;
-                max-height: none;
-                border-radius: 0;
-                padding: 16px 12px;
-                border: none;
-            }
-            .core-container {
-                height: 120px;
-            }
-            .header h1 {
-                font-size: 1.3rem;
-            }
         }
     </style>
 </head>
 <body>
 
-    <div class="phone-wrapper">
+    <!-- Main Clean Full-Screen Application Container -->
+    <div id="app-wrapper">
         
         <div class="header">
             <h1>J.A.R.V.I.S.</h1>
             <p>SYSTEM STATUS: OPTIMAL — Crafted by Minaty001</p>
         </div>
 
-        <div class="core-container">
-            <canvas id="brain-canvas"></canvas>
-        </div>
+        <div class="desktop-grid">
+            
+            <!-- LEFT PANEL -->
+            <div class="panel-left">
+                <div class="hud-card">
+                    <div class="card-title">CORTEX MATRIX (11 REGIONS)</div>
+                    <div class="card-row">PFC (Exec): <span class="highlight" id="pfc-status-d">Idle</span></div>
+                    <div class="card-row">Auditory: <span class="highlight" id="auditory-status-d">Listening</span></div>
+                    <div class="card-row">Wernicke: <span class="highlight" id="wernicke-status-d">Ready</span></div>
+                    <div class="card-row">Broca: <span class="highlight" id="broca-status-d">Ready</span></div>
+                    <div class="card-row">Motor: <span class="highlight" id="motor-status-d">Ready</span></div>
+                    <div class="card-row">Vision: <span class="highlight" id="vision-status-d">Standby</span></div>
+                    <div class="card-row">Defense: <span class="highlight" id="defense-status-d">Standby</span></div>
+                </div>
 
-        <div class="status-callout">
-            <div class="ready-text" id="status-text">READY, SIR.</div>
-            <div class="listening-text" id="listening-text">Listening...</div>
-        </div>
+                <div class="hud-card">
+                    <div class="card-title">TELEMETRY & SENSORS</div>
+                    <div class="card-row">Telemetry: <span class="highlight" id="telem-status-d">Nominal</span></div>
+                    <div class="card-row">Search: <span class="highlight" id="search-status-d">Ready</span></div>
+                    <div class="card-row">Scheduler: <span class="highlight" id="sched-status-d">Active</span></div>
+                    <div class="card-row">Memory: <span class="highlight" id="memory-status-d">SQLite Sync</span></div>
+                </div>
 
-        <!-- Chat Log -->
-        <div class="chat-log" id="chatLog"></div>
-
-        <div class="hud-grid-2x2">
-            <div class="hud-card">
-                <div class="card-title">CORTEX MATRIX (11 REGIONS)</div>
-                <div class="card-row">PFC (Exec): <span class="highlight" id="pfc-status">Idle</span></div>
-                <div class="card-row">Vision: <span class="highlight" id="vision-status">Standby</span></div>
-                <div class="card-row">Defense: <span class="highlight" id="defense-status">Standby</span></div>
+                <div class="hud-card">
+                    <div class="card-title">STARK PROTOCOLS</div>
+                    <div class="card-row">House Party: <span class="highlight">Ready</span></div>
+                    <div class="card-row">Stealth Mode: <span class="highlight">Standby</span></div>
+                    <div class="card-row">Lockdown: <span class="highlight">Clear</span></div>
+                </div>
             </div>
 
-            <div class="hud-card">
-                <div class="card-title">TELEMETRY & SENSORS</div>
-                <div class="card-row">Telemetry: <span class="highlight" id="telem-status">Nominal</span></div>
-                <div class="card-row">Search: <span class="highlight" id="search-status">Ready</span></div>
-                <div class="card-row">Scheduler: <span class="highlight" id="sched-status">Active</span></div>
+            <!-- CENTER PANEL -->
+            <div class="panel-center">
+                <div class="core-container">
+                    <canvas id="brain-canvas"></canvas>
+                </div>
+
+                <div class="status-callout">
+                    <div class="ready-text" id="status-text">READY, SIR.</div>
+                    <div class="listening-text" id="listening-text">Standing by...</div>
+                </div>
+
+                <div class="quick-chips">
+                    <div class="chip" onclick="quickSend('status diagnostics')">📊 Diagnostics</div>
+                    <div class="chip" onclick="quickSend('battery status')">🔋 Battery</div>
+                    <div class="chip" onclick="quickSend('weather forecast')">🌤️ Weather</div>
+                    <div class="chip" onclick="quickSend('execute house party protocol')">🎉 House Party</div>
+                    <div class="chip" onclick="quickSend('stealth mode on')">🥷 Stealth Mode</div>
+                    <div class="chip" onclick="quickSend('clear')">🧹 Clear</div>
+                </div>
+
+                <div class="hud-card">
+                    <div class="card-title">NEURAL PATHWAYS (11 CORTICAL NODES)</div>
+                    <div class="card-row" id="pathways-display-d">All pathways: <span class="highlight">Nominal</span></div>
+                </div>
+
+                <div class="command-row">
+                    <div class="command-box">
+                        <span class="command-label">CMD:</span>
+                        <input type="text" class="command-input" id="cmdInput" placeholder="Type or speak a command..." autocomplete="off">
+                    </div>
+                    <div class="voice-btn" id="voiceBtn" title="Tap for voice input (Web Speech API)">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M12,2A3,3 0 0,1 15,5V11A3,3 0 0,1 12,14A3,3 0 0,1 9,11V5A3,3 0 0,1 12,2M19,11C19,14.53 16.39,17.44 13,17.93V21H11V17.93C7.61,17.44 5,14.53 5,11H7A5,5 0 0,0 12,16A5,5 0 0,0 17,11H19Z" />
+                        </svg>
+                    </div>
+                </div>
             </div>
 
-            <div class="hud-card full-width">
-                <div class="card-title">NEURAL PATHWAYS (11 CORTICAL NODES)</div>
-                <div class="card-row" id="pathways-display">All pathways: <span class="highlight">Nominal</span></div>
-            </div>
-        </div>
+            <!-- RIGHT PANEL / CHAT LOG & TELEMETRY -->
+            <div class="panel-right">
+                <div class="stats-inline-bar">
+                    <div>TEMP: <span id="temp-val">22°C</span></div>
+                    <div>CPU: <span id="cpu-val">18%</span></div>
+                    <div>ACT: <span id="activity-val">0%</span></div>
+                    <div>SYN: <span id="synapse-val">0</span></div>
+                    <div>BATT: <span id="batt-val">89%</span></div>
+                </div>
 
-        <div class="stats-inline-bar">
-            <div>TEMP: <span id="temp-val">22°C</span></div>
-            <div>CPU: <span id="cpu-val">18%</span></div>
-            <div>ACT: <span id="activity-val">0%</span></div>
-            <div>SYN: <span id="synapse-val">0</span></div>
-            <div>BATT: <span id="batt-val">89%</span></div>
-        </div>
-
-        <div class="command-row">
-            <div class="command-box">
-                <span class="command-label">CMD:</span>
-                <input type="text" class="command-input" id="cmdInput" placeholder="Type a command..." autocomplete="off">
+                <div class="chat-log" id="chatLog"></div>
             </div>
-            <div class="voice-btn" id="voiceBtn" title="Voice input (Web Speech API)">
-                <svg viewBox="0 0 24 24">
-                    <path d="M12,2A3,3 0 0,1 15,5V11A3,3 0 0,1 12,14A3,3 0 0,1 9,11V5A3,3 0 0,1 12,2M19,11C19,14.53 16.39,17.44 13,17.93V21H11V17.93C7.61,17.44 5,14.53 5,11H7A5,5 0 0,0 12,16A5,5 0 0,0 17,11H19Z" />
-                </svg>
-            </div>
-        </div>
 
-        <div class="nav-ticks">
-            <div class="tick" style="transform: rotate(90deg); width: 10px;"></div>
-            <div class="tick" style="border-radius: 50%; width: 10px; height: 10px;"></div>
-            <div class="tick"></div>
         </div>
 
     </div>
 
     <script src="{{ url_for('static', filename='brain.js') }}"></script>
     <script>
+        // ============== Haptic Feedback ==============
+        function vibrate(ms = 30) {
+            if (navigator.vibrate) {
+                try { navigator.vibrate(ms); } catch(e){}
+            }
+        }
+
         // ============== Chat Log ==============
         const chatLog = document.getElementById('chatLog');
 
@@ -482,7 +570,16 @@
             return div.innerHTML;
         }
 
-        // ============== Brain State ==============
+        function quickSend(command) {
+            vibrate(25);
+            if (command === 'clear') {
+                chatLog.innerHTML = '';
+                return;
+            }
+            sendCommand(command);
+        }
+
+        // ============== Brain State Sync ==============
         async function fetchBrainState() {
             try {
                 const resp = await fetch('/api/brain-state');
@@ -497,41 +594,48 @@
             const regions = data.regions || {};
             const activeCount = Object.values(regions).filter(r => r.active).length;
 
-            document.getElementById('pfc-status').innerText = regions.pfc?.active ? 'Active' : 'Idle';
-            document.getElementById('vision-status').innerText = regions.occipital?.active ? 'Scanning' : 'Standby';
-            document.getElementById('defense-status').innerText = regions.defense?.active ? 'Protocol' : 'Standby';
-            document.getElementById('telem-status').innerText = regions.somatosensory?.active ? 'Monitoring' : 'Standby';
-            document.getElementById('search-status').innerText = regions.thalamus?.active ? 'Querying' : 'Ready';
-            document.getElementById('sched-status').innerText = regions.cerebellum?.active ? 'Active' : 'Idle';
+            const setTxt = (id, text) => {
+                const el = document.getElementById(id);
+                if (el) el.innerText = text;
+            };
 
-            document.getElementById('activity-val').innerText = (data.neural_activity_pct || 0).toFixed(0) + '%';
-            document.getElementById('synapse-val').innerText = data.total_synapses || 0;
+            setTxt('pfc-status-d', regions.pfc?.active ? 'Active' : 'Idle');
+            setTxt('auditory-status-d', regions.auditory?.active ? 'Listening' : 'Ready');
+            setTxt('wernicke-status-d', regions.wernicke?.active ? 'Processing' : 'Ready');
+            setTxt('broca-status-d', regions.broca?.active ? 'Speaking' : 'Ready');
+            setTxt('motor-status-d', regions.motor?.active ? 'Executing' : 'Ready');
+            setTxt('vision-status-d', regions.occipital?.active ? 'Scanning' : 'Standby');
+            setTxt('defense-status-d', regions.defense?.active ? 'Protocol' : 'Standby');
+            setTxt('telem-status-d', regions.somatosensory?.active ? 'Monitoring' : 'Nominal');
+            setTxt('search-status-d', regions.thalamus?.active ? 'Querying' : 'Ready');
+            setTxt('sched-status-d', regions.cerebellum?.active ? 'Active' : 'Idle');
+
+            setTxt('activity-val', (data.neural_activity_pct || 0).toFixed(0) + '%');
+            setTxt('synapse-val', data.total_synapses || 0);
 
             const paths = data.active_pathways || [];
-            const pathEl = document.getElementById('pathways-display');
-            if (paths.length > 0) {
-                pathEl.innerHTML = 'Active: <span class="highlight">' + paths.map(p => p[0] + '\u2192' + p[1]).join(' | ') + '</span>';
-            } else {
-                pathEl.innerHTML = 'All pathways: <span class="highlight">Nominal</span>';
-            }
+            const pathText = paths.length > 0
+                ? 'Active: <span class="highlight">' + paths.map(p => p[0] + '\u2192' + p[1]).join(' | ') + '</span>'
+                : 'All pathways: <span class="highlight">Nominal</span>';
+
+            const pd = document.getElementById('pathways-display-d');
+            if (pd) pd.innerHTML = pathText;
 
             const statusText = document.getElementById('status-text');
-            if (activeCount > 2) {
-                statusText.innerText = 'PROCESSING...';
-            } else {
-                statusText.innerText = 'READY, SIR.';
+            if (statusText) {
+                statusText.innerText = activeCount > 2 ? 'PROCESSING...' : 'READY, SIR.';
             }
         }
 
-        // Simulated real-time variance for system stats
         setInterval(() => {
             const cpu = Math.floor(Math.random() * 15) + 10; 
             const temp = Math.floor(Math.random() * 3) + 21;
-            document.getElementById('cpu-val').innerText = cpu + '%';
-            document.getElementById('temp-val').innerText = temp + '\u00b0C';
+            const cpuEl = document.getElementById('cpu-val');
+            const tempEl = document.getElementById('temp-val');
+            if (cpuEl) cpuEl.innerText = cpu + '%';
+            if (tempEl) tempEl.innerText = temp + '\u00b0C';
         }, 3000);
 
-        // Poll brain state every 2 seconds
         setInterval(fetchBrainState, 2000);
         fetchBrainState();
 
@@ -541,8 +645,9 @@
 
         function sendCommand(command) {
             if (!command) return;
+            vibrate(30);
             addChatEntry('user', command);
-            listeningEl.innerText = 'Processing...';
+            if (listeningEl) listeningEl.innerText = 'Processing...';
 
             fetch('/api/command', {
                 method: 'POST',
@@ -553,12 +658,12 @@
             .then(data => {
                 const response = data.response || 'Command processed.';
                 addChatEntry('jarvis', response);
-                listeningEl.innerText = response;
+                if (listeningEl) listeningEl.innerText = response;
             })
             .catch(err => {
                 const msg = 'Command relay error: ' + err.message;
                 addChatEntry('system', msg);
-                listeningEl.innerText = 'Link error, sir.';
+                if (listeningEl) listeningEl.innerText = 'Link error, sir.';
             });
         }
 
@@ -585,7 +690,7 @@
         function initSpeechRecognition() {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             if (!SpeechRecognition) {
-                voiceBtn.style.opacity = '0.3';
+                voiceBtn.style.opacity = '0.4';
                 voiceBtn.title = 'Voice input not supported in this browser';
                 return null;
             }
@@ -597,6 +702,7 @@
         }
 
         voiceBtn.addEventListener('click', function() {
+            vibrate(40);
             if (isListening) {
                 if (recognition) {
                     recognition.stop();
@@ -607,7 +713,7 @@
             if (!recognition) {
                 recognition = initSpeechRecognition();
                 if (!recognition) {
-                    listeningEl.innerText = 'Voice input unsupported in this browser, sir.';
+                    if (listeningEl) listeningEl.innerText = 'Voice input unsupported on this browser, sir.';
                     return;
                 }
             }
@@ -615,7 +721,7 @@
             recognition.onstart = function() {
                 isListening = true;
                 voiceBtn.classList.add('listening');
-                listeningEl.innerText = 'Listening via microphone...';
+                if (listeningEl) listeningEl.innerText = 'Listening via microphone...';
                 cmdInput.placeholder = 'Listening...';
             };
 
@@ -629,7 +735,7 @@
 
             recognition.onerror = function(event) {
                 console.error('Speech recognition error:', event.error);
-                listeningEl.innerText = 'Voice input error: ' + event.error;
+                if (listeningEl) listeningEl.innerText = 'Voice input error: ' + event.error;
                 stopListening();
             };
 
@@ -640,7 +746,7 @@
             try {
                 recognition.start();
             } catch (e) {
-                listeningEl.innerText = 'Microphone access denied, sir.';
+                if (listeningEl) listeningEl.innerText = 'Microphone access denied, sir.';
                 stopListening();
             }
         });
@@ -648,9 +754,9 @@
         function stopListening() {
             isListening = false;
             voiceBtn.classList.remove('listening');
-            cmdInput.placeholder = 'Type a command...';
-            if (listeningEl.innerText === 'Listening via microphone...') {
-                listeningEl.innerText = 'Listening...';
+            cmdInput.placeholder = 'Type or speak a command...';
+            if (listeningEl && listeningEl.innerText === 'Listening via microphone...') {
+                listeningEl.innerText = 'Standing by...';
             }
         }
 

@@ -1,7 +1,7 @@
 """Tests for the Voice pipeline (Piper TTS)."""
 
 import pytest
-from jarvis.pipelines.voice import VoicePipeline
+from jarvis.services.tts import VoicePipeline
 
 
 @pytest.mark.asyncio

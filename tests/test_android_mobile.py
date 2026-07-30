@@ -1,6 +1,6 @@
 import pytest
-from jarvis.pipelines.device import DevicePipeline
-from jarvis.pipelines.memory import MemoryPipeline
+from jarvis.services.device import DevicePipeline
+from jarvis.services.storage import MemoryPipeline
 from jarvis.core.intent import classify_intent
 
 

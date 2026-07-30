@@ -132,6 +132,10 @@ async def run_interactive(
             if not use_tui:
                 print("JARVIS online. Say the wake word to activate, sir.")
             await engine.run()
+
+        if use_web:
+            log.info("Web UI active. Standing by...")
+            await asyncio.Event().wait()
     finally:
         if tui_task:
             tui_task.cancel()

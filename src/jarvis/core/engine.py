@@ -12,7 +12,7 @@ from typing import Optional
 
 from jarvis.core.config import Config, config as app_config
 from jarvis.core.intent import classify_intent
-from jarvis.pipelines.base import AsyncPipeline
+from jarvis.services.base import AsyncPipeline
 from jarvis.utils.logging import log
 
 
@@ -90,18 +90,18 @@ class Engine:
             no_voice: If True, disables TTS output (voice pipeline set to None after greeting).
             silent_boot: If True, suppresses startup boot greeting voice/stdout.
         """
-        from jarvis.pipelines.speech import SpeechPipeline
-        from jarvis.pipelines.chat import ChatPipeline
-        from jarvis.pipelines.voice import VoicePipeline
-        from jarvis.pipelines.device import DevicePipeline
-        from jarvis.pipelines.memory import MemoryPipeline
-        from jarvis.pipelines.vision import VisionPipeline
-        from jarvis.pipelines.telemetry import TelemetryPipeline
-        from jarvis.pipelines.protocol import ProtocolPipeline
-        from jarvis.pipelines.search import SearchPipeline
-        from jarvis.pipelines.scheduler import SchedulerPipeline
-        from jarvis.pipelines.audio_fx import AudioFXPipeline
-        from jarvis.pipelines.autonomy import AutonomyPipeline
+        from jarvis.services.stt import SpeechPipeline
+        from jarvis.services.chat import ChatPipeline
+        from jarvis.services.tts import VoicePipeline
+        from jarvis.services.device import DevicePipeline
+        from jarvis.services.storage import MemoryPipeline
+        from jarvis.modules.vision import VisionPipeline
+        from jarvis.modules.telemetry import TelemetryPipeline
+        from jarvis.modules.protocols import ProtocolPipeline
+        from jarvis.modules.search import SearchPipeline
+        from jarvis.modules.timers import SchedulerPipeline
+        from jarvis.modules.audio_fx import AudioFXPipeline
+        from jarvis.modules.autonomy import AutonomyPipeline
 
         # Internal registry with dependency-safe ordering
         registry: list[tuple[str, type[AsyncPipeline], dict]] = [

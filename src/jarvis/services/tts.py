@@ -1,38 +1,36 @@
 """Voice pipeline — Text-to-Speech (Broca's Area).
 
 Primary: Piper TTS (local, low-latency).
-Fallback: edge-tts (Microsoft Edge free TTS, generates WAV via paplay).
+Fallback: edge-tts (Microsoft Edge free cloud TTS).
 Fallback: termux-tts-speak (Android TTS engine).
-Final fallback: log only.
+Cross-platform audio player support for Android Termux, Linux, and Windows.
+Crafted by Minaty001.
 """
 
 from __future__ import annotations
 
 import asyncio
 import os
+import sys
 import shutil
 import subprocess
 import tempfile
 from typing import Optional
 
 from jarvis.core.config import Config, config as app_config
-from jarvis.pipelines.base import AsyncPipeline
+from jarvis.services.base import AsyncPipeline
 from jarvis.utils.logging import log
 
 
 class VoicePipeline(AsyncPipeline):
-    """Async TTS with Piper (preferred), edge-tts, and termux-tts-speak fallback."""
+    """Async TTS with Piper, edge-tts, termux-tts-speak, and cross-platform player fallbacks."""
 
     def __init__(self, config: Config | None = None) -> None:
         super().__init__(config)
         self._speak_task: Optional[asyncio.Task] = None
 
     async def speak(self, text: str) -> None:
-        """Speak text. Cancels any current speech first (interrupt behavior).
-
-        Args:
-            text: Text to speak aloud.
-        """
+        """Speak text. Cancels any current speech first (interrupt behavior)."""
         await self.cancel()
         if not text.strip():
             return
@@ -91,23 +89,21 @@ class VoicePipeline(AsyncPipeline):
             log.debug(f"Piper execution failed: {e}")
 
     async def _try_edge_tts(self, text: str) -> bool:
-        """Fallback: use edge-tts (Microsoft Edge free TTS) via paplay."""
-        paplay = shutil.which("paplay")
-        if not paplay:
-            return False
+        """Fallback: use edge-tts (Microsoft Edge free TTS)."""
         try:
             import edge_tts
         except ImportError:
             log.debug("edge_tts not installed — skipping cloud TTS fallback.")
             return False
+
         output_path = None
         try:
-            with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
+            with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as tmp:
                 output_path = tmp.name
             await edge_tts.Communicate(text, voice="en-US-AriaNeural").save(output_path)
             loop = asyncio.get_running_loop()
-            await loop.run_in_executor(None, self._play_wav_sync, output_path)
-            return True
+            played = await loop.run_in_executor(None, self._play_audio_file, output_path)
+            return played
         except Exception as e:
             log.debug(f"edge-tts failed: {e}")
             return False
@@ -118,19 +114,31 @@ class VoicePipeline(AsyncPipeline):
                 except Exception:
                     pass
 
-    def _play_wav_sync(self, path: str) -> None:
-        try:
-            subprocess.run(["termux-media-player", "play", path], capture_output=True, timeout=10)
-        except Exception:
-            try:
-                subprocess.run(["aplay", path], capture_output=True, timeout=10)
-            except Exception:
-                paplay = shutil.which("paplay")
-                if paplay:
-                    try:
-                        subprocess.run([paplay, path], capture_output=True, timeout=10)
-                    except Exception:
-                        pass
+    def _play_wav_sync(self, path: str) -> bool:
+        return self._play_audio_file(path)
+
+    def _play_audio_file(self, path: str) -> bool:
+        """Play audio file across Termux, Linux, and Windows."""
+        players = [
+            ["termux-media-player", "play", path],
+            ["paplay", path],
+            ["aplay", path],
+            ["pw-play", path],
+            ["ffplay", "-nodisp", "-autoexit", path],
+        ]
+        if sys.platform.startswith("win"):
+            players.append(["powershell", "-c", f"(New-Object Media.SoundPlayer '{path}').PlaySync()"])
+
+        for cmd in players:
+            bin_name = cmd[0]
+            if shutil.which(bin_name):
+                try:
+                    res = subprocess.run(cmd, capture_output=True, timeout=15)
+                    if res.returncode == 0:
+                        return True
+                except Exception:
+                    pass
+        return False
 
     def _find_piper(self) -> Optional[str]:
         candidates = ["piper", os.path.expanduser("~/.local/bin/piper")]
@@ -153,7 +161,9 @@ class VoicePipeline(AsyncPipeline):
         return None
 
     async def _try_termux_tts(self, text: str) -> bool:
-        """Fallback: use termux-tts-speak."""
+        """Fallback: use termux-tts-speak on Android Termux."""
+        if not shutil.which("termux-tts-speak"):
+            return False
         try:
             proc = await asyncio.create_subprocess_exec(
                 "termux-tts-speak",

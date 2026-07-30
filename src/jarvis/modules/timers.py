@@ -10,7 +10,7 @@ import asyncio
 import inspect
 from typing import Callable, Optional, Dict, Any, Union
 from jarvis.core.config import Config
-from jarvis.pipelines.base import AsyncPipeline
+from jarvis.services.base import AsyncPipeline
 from jarvis.utils.logging import log
 
 

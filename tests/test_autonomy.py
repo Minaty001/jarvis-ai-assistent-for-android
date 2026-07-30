@@ -1,6 +1,6 @@
 import pytest
-from jarvis.pipelines.autonomy import AutonomyPipeline
-from jarvis.pipelines.telemetry import TelemetryPipeline
+from jarvis.modules.autonomy import AutonomyPipeline
+from jarvis.modules.telemetry import TelemetryPipeline
 
 
 @pytest.mark.asyncio

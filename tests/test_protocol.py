@@ -1,5 +1,5 @@
 import pytest
-from jarvis.pipelines.protocol import ProtocolPipeline
+from jarvis.modules.protocols import ProtocolPipeline
 
 
 @pytest.mark.asyncio

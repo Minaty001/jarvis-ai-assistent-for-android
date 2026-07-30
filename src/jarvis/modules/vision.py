@@ -12,7 +12,7 @@ import os
 import base64
 from typing import Optional
 from jarvis.core.config import Config
-from jarvis.pipelines.base import AsyncPipeline
+from jarvis.services.base import AsyncPipeline
 from jarvis.utils.logging import log
 
 

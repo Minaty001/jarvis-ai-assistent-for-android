@@ -11,7 +11,7 @@ import asyncio
 from typing import Any, Optional
 
 from jarvis.core.config import Config, config as app_config
-from jarvis.pipelines.base import AsyncPipeline
+from jarvis.services.base import AsyncPipeline
 from jarvis.utils.logging import log
 
 

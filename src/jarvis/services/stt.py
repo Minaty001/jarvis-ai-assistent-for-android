@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Any, Callable, Optional
 
 from jarvis.core.config import Config, config as app_config
-from jarvis.pipelines.base import AsyncPipeline
+from jarvis.services.base import AsyncPipeline
 from jarvis.utils.logging import log
 
 try:

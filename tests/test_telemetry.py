@@ -1,5 +1,5 @@
 import pytest
-from jarvis.pipelines.telemetry import TelemetryPipeline
+from jarvis.modules.telemetry import TelemetryPipeline
 
 
 @pytest.mark.asyncio

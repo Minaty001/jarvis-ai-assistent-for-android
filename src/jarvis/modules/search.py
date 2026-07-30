@@ -12,7 +12,7 @@ import urllib.parse
 import json
 from typing import Optional, Dict, Any
 from jarvis.core.config import Config
-from jarvis.pipelines.base import AsyncPipeline
+from jarvis.services.base import AsyncPipeline
 from jarvis.utils.logging import log
 
 

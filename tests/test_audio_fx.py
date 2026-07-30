@@ -1,6 +1,6 @@
 import os
 import pytest
-from jarvis.pipelines.audio_fx import AudioFXPipeline, _FX
+from jarvis.modules.audio_fx import AudioFXPipeline, _FX
 
 
 def test_sound_effects_are_prebuilt():
