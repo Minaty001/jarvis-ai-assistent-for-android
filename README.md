@@ -1,8 +1,10 @@
-# Jarvis AI Assistant for Android
+# Jarvis AI Assistant for Android & Cloud
 
 > **Crafted by [Minaty001](https://github.com/Minaty001)** — made for him, but free for everyone to use.
 
-A modular, voice-controlled AI assistant for Android Termux with a brain-inspired pipeline architecture, neural visualization UI, and 132 passing tests.
+A modular, voice-controlled AI assistant for Android Termux, Linux, Windows, and Cloud platforms with a brain-inspired pipeline architecture, neural visualization UI, and 132 passing unit tests.
+
+---
 
 ## Architecture
 
@@ -24,53 +26,173 @@ The assistant is built as **11 independent pipelines**, organized under clear cu
 
 ---
 
-## Installation & Setup
+## Step-by-Step Setup & Deploy Guide
 
-We provide an automated setup script to install dependencies, construct a virtual environment, and configure environment templates:
-
-* **Android Termux (Native)**:
-  ```bash
-  chmod +x setup_termux.sh
-  ./setup_termux.sh
+### 1. Prerequisites (All Environments)
+- **Groq API Key**: Obtain a free API key from [Groq Console](https://console.groq.com).
+- **Environment File**: Copy `.env.example` to `.env` and set your key:
+  ```env
+  GROQ_API_KEY=your_groq_api_key_here
   ```
-
-Once setup finishes, edit your `.env` configuration file to input your `GROQ_API_KEY`.
 
 ---
 
-## Usage
+### 2. Android (Termux Native)
 
-You can use the automated startup script `start.sh` or run the module packages directly via Python:
+#### Step 1: Install Termux & Termux:API
+1. Download and install **Termux** and **Termux:API** apps from [F-Droid](https://f-droid.org/). *(Do not install from Google Play Store as those packages are deprecated)*.
+2. Grant requested storage and notification permissions.
 
-### Voice Mode (with wake word)
+#### Step 2: Clone Repository & Run Installer
+Open Termux and execute:
 ```bash
-./start.sh
-# OR
-python -m app
+pkg update && pkg upgrade -y
+pkg install git -y
+git clone https://github.com/Minaty001/jarvis-ai-assistent-for-android.git
+cd jarvis-ai-assistent-for-android
+chmod +x setup_termux.sh start.sh
+./setup_termux.sh
 ```
 
-### Text Mode
+#### Step 3: Configure Environment
 ```bash
-./start.sh --text
-# OR
+cp .env.example .env
+nano .env   # Add your GROQ_API_KEY
+```
+
+#### Step 4: Run Assistant
+- **Voice Mode**: `./start.sh` or `python -m app`
+- **Text Mode**: `./start.sh --text`
+- **Web UI Mode**: `./start.sh --web` (Open `http://localhost:5000` in browser)
+- **TUI HUD**: `./start.sh --tui`
+
+---
+
+### 3. Linux (Ubuntu / Debian / Arch / Fedora)
+
+#### Step 1: Install System Dependencies
+- **Ubuntu/Debian**:
+  ```bash
+  sudo apt update
+  sudo apt install -y python3 python3-venv python3-pip git ffmpeg portaudio19-dev
+  ```
+- **Fedora**:
+  ```bash
+  sudo dnf install -y python3 python3-pip git ffmpeg portaudio-devel
+  ```
+- **Arch Linux**:
+  ```bash
+  sudo pacman -S --needed python git ffmpeg portaudio
+  ```
+
+#### Step 2: Clone & Virtual Environment Setup
+```bash
+git clone https://github.com/Minaty001/jarvis-ai-assistent-for-android.git
+cd jarvis-ai-assistent-for-android
+python3 -m venv .venv
+source .venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt sounddevice numpy
+```
+
+#### Step 3: Configure Environment
+```bash
+cp .env.example .env
+# Edit .env and set GROQ_API_KEY=your_key
+```
+
+#### Step 4: Run or Deploy as systemd Service
+- **Run directly**:
+  ```bash
+  ./start.sh --web   # Web UI mode
+  ./start.sh --text  # Text mode
+  ```
+- **Deploy as systemd background service**:
+  ```bash
+  sudo cp jarvis.service /etc/systemd/system/
+  sudo systemctl daemon-reload
+  sudo systemctl enable --now jarvis
+  ```
+
+---
+
+### 4. Windows (PowerShell / CMD)
+
+#### Step 1: Install Dependencies
+1. Download and install **Python 3.10+** from [python.org](https://www.python.org/downloads/) (Check *"Add Python to PATH"* during installation).
+2. Download and install **Git** from [git-scm.com](https://git-scm.com/).
+3. Download **FFmpeg** and add its `bin` directory to system PATH environment variable.
+
+#### Step 2: Clone Repository & Create Virtual Environment
+Open **PowerShell** as User:
+```powershell
+git clone https://github.com/Minaty001/jarvis-ai-assistent-for-android.git
+cd jarvis-ai-assistent-for-android
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install --upgrade pip
+pip install -r requirements.txt sounddevice numpy
+```
+
+#### Step 3: Configure Environment
+```powershell
+Copy-Item .env.example .env
+# Open .env with Notepad and paste your GROQ_API_KEY
+notepad .env
+```
+
+#### Step 4: Run Assistant
+```powershell
+python -m app --web
+# Or text mode:
 python -m app --text
 ```
 
-### Text Mode (no TTS)
-```bash
-./start.sh --no-voice
-```
+---
 
-### Terminal UI (Brain Network Monitor)
-```bash
-./start.sh --tui
-```
+### 5. Render.com (Cloud Web Deployment)
 
-### Web UI
-```bash
-./start.sh --web
-```
-Opens a Flask web server (`http://localhost:5000`) with a live brain visualization, chat log, and browser voice input.
+Deploy Jarvis as a public web application server on [Render.com](https://render.com).
+
+#### Step 1: Fork/Push Code to GitHub
+Ensure your repository is uploaded to your GitHub account.
+
+#### Step 2: Create a Web Service on Render
+1. Sign in to [Render Dashboard](https://dashboard.render.com/) and click **New +** -> **Web Service**.
+2. Connect your GitHub repository `jarvis-ai-assistent-for-android`.
+3. Fill out the service settings:
+   - **Name**: `jarvis-ai-assistant`
+   - **Environment**: `Python 3`
+   - **Region**: Select closest region
+   - **Branch**: `main` (or default branch)
+   - **Build Command**:
+     ```bash
+     pip install --upgrade pip && pip install -r requirements.txt sounddevice numpy
+     ```
+   - **Start Command**:
+     ```bash
+     python -m app --web
+     ```
+
+#### Step 3: Set Environment Variables
+Under the **Environment Variables** tab, add:
+- `GROQ_API_KEY`: `your_actual_groq_api_key`
+- `PORT`: `5000` *(or leave default, Render sets PORT automatically)*
+
+#### Step 4: Deploy & Access
+Click **Create Web Service**. Once deployment finishes, open your Render `.onrender.com` URL to access your web interface with live brain network visualizations and chat capabilities.
+
+---
+
+## Usage Summary
+
+| Mode | Command | Description |
+|------|---------|-------------|
+| Voice Mode | `./start.sh` or `python -m app` | Full voice mode with wake word detection |
+| Text Mode | `./start.sh --text` or `python -m app --text` | Interactive command-line chat mode |
+| Text (No TTS) | `./start.sh --no-voice` | Text mode without speech output |
+| Terminal TUI | `./start.sh --tui` | Terminal HUD Brain Network Monitor |
+| Web UI Mode | `./start.sh --web` | Flask server (`http://localhost:5000`) with visual neural brain |
 
 ---
 
@@ -132,3 +254,4 @@ Jarvis/
 ```
 
 **Current test count: 132 passing** across 20 test files.
+
