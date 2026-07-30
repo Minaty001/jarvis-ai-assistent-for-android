@@ -13,7 +13,7 @@ async def test_generate_returns_none_without_any_key(monkeypatch):
     pipeline = ChatPipeline()
     result = await pipeline.generate([{"role": "user", "content": "hello"}])
     assert result is None
-    await pipeline.close()
+    await pipeline.stop()
 
 
 @pytest.mark.asyncio
@@ -25,7 +25,7 @@ async def test_generate_with_groq_key_only(monkeypatch):
     result = await pipeline.generate([{"role": "user", "content": "hi"}])
     # Without httpx it returns None (no actual HTTP call)
     assert result is None or isinstance(result, str)
-    await pipeline.close()
+    await pipeline.stop()
 
 
 @pytest.mark.asyncio
@@ -37,7 +37,7 @@ async def test_generate_with_openai_key_only(monkeypatch):
     result = await pipeline.generate([{"role": "user", "content": "hello"}])
     # Without httpx it returns None (no actual HTTP call)
     assert result is None or isinstance(result, str)
-    await pipeline.close()
+    await pipeline.stop()
 
 
 @pytest.mark.asyncio
@@ -49,7 +49,7 @@ async def test_generate_fallback_order(monkeypatch):
     result = await pipeline.generate([{"role": "user", "content": "hello"}])
     # Without httpx both will fail, returning None
     assert result is None
-    await pipeline.close()
+    await pipeline.stop()
 
 
 @pytest.mark.asyncio
@@ -57,7 +57,7 @@ async def test_close_cleans_up_client(monkeypatch):
     """Close should set _client to None."""
     monkeypatch.setattr(config, "groq_api_key", "test-key")
     pipeline = ChatPipeline()
-    await pipeline.close()
+    await pipeline.stop()
     assert pipeline._client is None
 
 
@@ -72,7 +72,7 @@ async def test_build_payload_includes_tools(monkeypatch):
     assert payload["model"] == "test-model"
     assert payload["messages"] == msgs
     assert payload["tools"] == tools
-    await pipeline.close()
+    await pipeline.stop()
 
 
 @pytest.mark.asyncio

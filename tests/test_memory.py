@@ -10,7 +10,7 @@ async def mem(tmp_path):
     pipeline = MemoryPipeline(db_path=db_path)
     await pipeline.initialize()
     yield pipeline
-    await pipeline.close()
+    await pipeline.stop()
 
 
 @pytest.mark.asyncio

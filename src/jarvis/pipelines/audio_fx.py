@@ -1,115 +1,89 @@
-"""Audio FX Pipeline — Multi-Modal Stark Audio Sound Effects.
+"""Audio FX — pre-synthesized WAV bytes for Stark HUD sounds.
 
-Synthesizes sci-fi HUD sound effects (activation chimes, protocol pulses, confirmation beeps).
-Crafted by Minaty001.
+Pure-data: sine tones synthesized once at import time into bytes constants.
 """
 
 from __future__ import annotations
 
 import asyncio
-import math
-import os
+import io
 import struct
 import wave
 from typing import Optional
+
+from jarvis.core.config import Config
+from jarvis.pipelines.base import AsyncPipeline
 from jarvis.utils.logging import log
 
 
-class AudioFXPipeline:
-    """Synthesizer and player for Stark HUD audio feedback."""
+def _make_wav(freqs: list[float], dur: float = 0.15, sr: int = 22050, amp: float = 0.3) -> bytes:
+    """Synthesise a WAV as bytes.  No disk IO."""
+    n = int(sr * dur)
+    spp = n // max(1, len(freqs))
+    buf = io.BytesIO()
+    with wave.open(buf, "wb") as w:
+        w.setnchannels(1)
+        w.setsampwidth(2)
+        w.setframerate(sr)
+        for idx, f in enumerate(freqs):
+            for i in range(spp):
+                t = i / sr
+                env = __import__("math").sin(3.14159 * i / spp)
+                val = int(32767 * amp * env * __import__("math").sin(6.2832 * f * t))
+                w.writeframesraw(struct.pack("<h", val))
+    return buf.getvalue()
 
-    def __init__(self, cache_dir: Optional[str] = None) -> None:
-        self.cache_dir = cache_dir or "/tmp/jarvis_audio_fx"
-        os.makedirs(self.cache_dir, exist_ok=True)
 
-    def _generate_sine_wave(
-        self,
-        filepath: str,
-        frequencies: list[float],
-        duration_sec: float = 0.15,
-        sample_rate: int = 22050,
-        amplitude: float = 0.3,
-    ) -> str:
-        """Generate a WAV file containing synthesized tone sequence."""
-        if os.path.exists(filepath):
-            return filepath
+# Six canned sound effects — built once at module load
+_FX: dict[str, bytes] = {
+    "wake":     _make_wav([880.0, 1760.0], dur=0.18),
+    "protocol": _make_wav([523.25, 659.25, 783.99, 1046.50], dur=0.25),
+    "success":  _make_wav([1046.50, 1318.51], dur=0.12),
+    "warning":  _make_wav([220.0, 180.0], dur=0.25),
+    "confirm":  _make_wav([1000.0], dur=0.10),
+}
 
-        n_samples = int(sample_rate * duration_sec)
-        num_freqs = len(frequencies)
-        samples_per_freq = n_samples // max(1, num_freqs)
 
-        with wave.open(filepath, "w") as wav_file:
-            wav_file.setnchannels(1)  # Mono
-            wav_file.setsampwidth(2)  # 16-bit
-            wav_file.setframerate(sample_rate)
+class AudioFXPipeline(AsyncPipeline):
+    """Play pre-synthesized sound effects via any available audio player."""
 
-            for idx, freq in enumerate(frequencies):
-                for i in range(samples_per_freq):
-                    t = float(i) / sample_rate
-                    # Fade envelope
-                    envelope = math.sin(math.pi * i / samples_per_freq)
-                    value = int(32767 * amplitude * envelope * math.sin(2.0 * math.pi * freq * t))
-                    data = struct.pack("<h", value)
-                    wav_file.writeframesraw(data)
-
-        return filepath
-
-    def get_sound_effect(self, fx_type: str) -> str:
-        """Get or generate the WAV file path for a sound effect type.
-
-        Supported fx_types: 'wake', 'protocol', 'success', 'warning', 'confirm'
-        """
-        fx_type = fx_type.lower()
-        if fx_type == "wake":
-            # Rising futuristic double tone (880Hz -> 1760Hz)
-            path = os.path.join(self.cache_dir, "fx_wake.wav")
-            return self._generate_sine_wave(path, [880.0, 1760.0], duration_sec=0.18)
-        elif fx_type == "protocol":
-            # Stark HUD security pulse (523Hz -> 659Hz -> 783Hz -> 1046Hz)
-            path = os.path.join(self.cache_dir, "fx_protocol.wav")
-            return self._generate_sine_wave(path, [523.25, 659.25, 783.99, 1046.50], duration_sec=0.25)
-        elif fx_type == "success":
-            # Confirmation chime (1046Hz -> 1318Hz)
-            path = os.path.join(self.cache_dir, "fx_success.wav")
-            return self._generate_sine_wave(path, [1046.50, 1318.51], duration_sec=0.12)
-        elif fx_type == "warning":
-            # Low frequency warning buzz (220Hz -> 180Hz)
-            path = os.path.join(self.cache_dir, "fx_warning.wav")
-            return self._generate_sine_wave(path, [220.0, 180.0], duration_sec=0.25)
-        else:
-            # Default blip (1000Hz)
-            path = os.path.join(self.cache_dir, "fx_confirm.wav")
-            return self._generate_sine_wave(path, [1000.0], duration_sec=0.1)
+    def __init__(self, config: Config | None = None) -> None:
+        super().__init__(config)
 
     async def play_fx(self, fx_type: str) -> bool:
-        """Asynchronously play a sound effect using available system tools."""
-        sound_path = self.get_sound_effect(fx_type)
-        if not sound_path or not os.path.exists(sound_path):
+        data = _FX.get(fx_type.lower())
+        if data is None:
             return False
 
-        # Try termux-media-player, paplay, aplay, or play
-        players = [
-            ("termux-media-player", ["play", sound_path]),
-            ("paplay", [sound_path]),
-            ("aplay", [sound_path]),
-            ("play", [sound_path]),
-        ]
+        path = None
+        try:
+            import tempfile
+            import os
+            fd, path = tempfile.mkstemp(suffix=".wav")
+            os.write(fd, data)
+            os.close(fd)
 
-        for cmd, args in players:
-            try:
-                proc = await asyncio.create_subprocess_exec(
-                    cmd, *args,
-                    stdout=asyncio.subprocess.DEVNULL,
-                    stderr=asyncio.subprocess.DEVNULL,
-                )
-                await proc.wait()
-                if proc.returncode == 0:
-                    return True
-            except FileNotFoundError:
-                continue
-            except Exception as e:
-                log.debug(f"Audio player {cmd} failed: {e}")
-                continue
-
-        log.debug(f"No audio player available to play sound effect '{fx_type}'.")
-        return False
+            for cmd, args in [
+                ("termux-media-player", ["play", path]),
+                ("paplay", [path]),
+                ("aplay", [path]),
+                ("play", [path]),
+            ]:
+                try:
+                    p = await asyncio.create_subprocess_exec(
+                        cmd, *args, stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.DEVNULL,
+                    )
+                    await p.wait()
+                    if p.returncode == 0:
+                        return True
+                except FileNotFoundError:
+                    continue
+                except Exception as e:
+                    log.debug(f"audio player {cmd} failed: {e}")
+            return False
+        finally:
+            if path:
+                try:
+                    __import__("os").unlink(path)
+                except Exception:
+                    pass

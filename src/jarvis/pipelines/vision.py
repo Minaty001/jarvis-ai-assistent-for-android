@@ -11,13 +11,16 @@ import asyncio
 import os
 import base64
 from typing import Optional
+from jarvis.core.config import Config
+from jarvis.pipelines.base import AsyncPipeline
 from jarvis.utils.logging import log
 
 
-class VisionPipeline:
+class VisionPipeline(AsyncPipeline):
     """Async vision processing pipeline for Android / Termux."""
 
-    def __init__(self, photo_dir: str = "data/photos") -> None:
+    def __init__(self, config: Config | None = None, photo_dir: str = "data/photos") -> None:
+        super().__init__(config)
         self.photo_dir = photo_dir
         os.makedirs(self.photo_dir, exist_ok=True)
 

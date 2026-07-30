@@ -12,13 +12,16 @@ import platform
 import time
 import asyncio
 from typing import Any, Dict
+from jarvis.core.config import Config
+from jarvis.pipelines.base import AsyncPipeline
 from jarvis.utils.logging import log
 
 
-class TelemetryPipeline:
+class TelemetryPipeline(AsyncPipeline):
     """System health monitoring and telemetry reporting."""
 
-    def __init__(self) -> None:
+    def __init__(self, config: Config | None = None) -> None:
+        super().__init__(config)
         self._start_time = time.time()
 
     async def get_system_telemetry(self) -> dict[str, Any]:

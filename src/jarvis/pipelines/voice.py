@@ -15,14 +15,16 @@ import subprocess
 import tempfile
 from typing import Optional
 
-from jarvis.core.config import config as app_config
+from jarvis.core.config import Config, config as app_config
+from jarvis.pipelines.base import AsyncPipeline
 from jarvis.utils.logging import log
 
 
-class VoicePipeline:
+class VoicePipeline(AsyncPipeline):
     """Async TTS with Piper (preferred), edge-tts, and termux-tts-speak fallback."""
 
-    def __init__(self) -> None:
+    def __init__(self, config: Config | None = None) -> None:
+        super().__init__(config)
         self._speak_task: Optional[asyncio.Task] = None
 
     async def speak(self, text: str) -> None:

@@ -31,7 +31,7 @@ async def test_custom_commands_memory_crud(tmp_path):
     action_after = await memory.get_custom_command("good night")
     assert action_after is None
 
-    await memory.close()
+    await memory.stop()
 
 
 def test_custom_command_intent_classification():

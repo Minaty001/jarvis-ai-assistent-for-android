@@ -9,13 +9,16 @@ from __future__ import annotations
 
 import asyncio
 from typing import Callable, Optional, Dict, Any
+from jarvis.core.config import Config
+from jarvis.pipelines.base import AsyncPipeline
 from jarvis.utils.logging import log
 
 
-class AutonomyPipeline:
+class AutonomyPipeline(AsyncPipeline):
     """Async background autonomous monitor for JARVIS."""
 
-    def __init__(self, telemetry_pipeline=None, voice_pipeline=None, check_interval_sec: float = 60.0) -> None:
+    def __init__(self, config: Config | None = None, telemetry_pipeline=None, voice_pipeline=None, check_interval_sec: float = 60.0) -> None:
+        super().__init__(config)
         self.telemetry = telemetry_pipeline
         self.voice = voice_pipeline
         self.check_interval_sec = check_interval_sec

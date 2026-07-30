@@ -6,8 +6,10 @@ and real-time activity metrics. Used by both terminal TUI and web UI.
 
 from __future__ import annotations
 
+import math
+import time
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Any, Optional
 
 
 # ANSI color codes matching the cortical region palette
@@ -52,6 +54,81 @@ class BrainState:
 
 class BrainRenderer:
     """Generates brain visualization string for terminal display."""
+
+    @staticmethod
+    def build_state(engine: Any) -> BrainState:
+        """Build a BrainState snapshot from an engine's current state.
+
+        Args:
+            engine: Engine-like object with a ``.state`` enum/string attribute.
+
+        Returns:
+            Populated BrainState reflecting current pipeline activity.
+        """
+        state = BrainState()
+        now = time.time()
+
+        eng_state = str(engine.state) if hasattr(engine, 'state') else "idle"
+
+        region_active = {
+            "pfc": eng_state in ("processing", "listening", "speaking"),
+            "auditory": eng_state in ("wake_word", "listening"),
+            "wernicke": eng_state in ("processing",),
+            "broca": eng_state in ("speaking",),
+            "motor": eng_state in ("processing",),
+            "hippocampus": True,
+            "occipital": eng_state in ("processing",),
+            "somatosensory": True,
+            "defense": eng_state in ("processing",),
+            "thalamus": eng_state in ("processing",),
+            "cerebellum": True,
+        }
+
+        latencies = {
+            "pfc": 5.0 + (2.0 * math.sin(now * 0.5)),
+            "auditory": 120.0 if region_active["auditory"] else 0.0,
+            "wernicke": 450.0 if region_active["wernicke"] else 0.0,
+            "broca": 800.0 if region_active["broca"] else 0.0,
+            "motor": 50.0 if region_active["motor"] else 0.0,
+            "hippocampus": 3.0,
+            "occipital": 150.0 if region_active["occipital"] else 0.0,
+            "somatosensory": 10.0,
+            "defense": 80.0 if region_active["defense"] else 0.0,
+            "thalamus": 200.0 if region_active["thalamus"] else 0.0,
+            "cerebellum": 5.0,
+        }
+
+        for key, info in COLORS.items():
+            state.regions[key] = RegionStatus(
+                name=info["name"],
+                color_code=info["color"],
+                label=info["label"],
+                active=region_active.get(key, False),
+                latency_ms=latencies.get(key, 0.0),
+                health="active" if region_active.get(key, False) else "standby",
+            )
+
+        pathways = []
+        if region_active["auditory"]:
+            pathways.append(("Auditory", "Wernicke"))
+        if region_active["wernicke"]:
+            pathways.append(("Wernicke", "Broca"))
+            pathways.append(("Wernicke", "Hippocampus"))
+            pathways.append(("Wernicke", "Thalamus"))
+        if region_active["motor"]:
+            pathways.append(("PFC", "Motor"))
+        if region_active["occipital"]:
+            pathways.append(("Occipital", "PFC"))
+        if region_active["defense"]:
+            pathways.append(("PFC", "Defense"))
+        state.active_pathways = pathways
+
+        active_count = sum(1 for v in region_active.values() if v)
+        state.neural_activity_pct = (active_count / 11) * 100
+        state.cortex_health = "OPTIMAL" if active_count <= 8 else "HIGH LOAD"
+        state.total_synapses = len(pathways)
+
+        return state
 
     @staticmethod
     def build_region_map(state: BrainState) -> str:

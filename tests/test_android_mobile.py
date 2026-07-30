@@ -54,7 +54,7 @@ async def test_mobile_memory_pipeline(tmp_path):
     assert last_loc["latitude"] == 35.6762
     assert last_loc["longitude"] == 139.6503
 
-    await memory.close()
+    await memory.stop()
 
 
 def test_mobile_intents_classification():

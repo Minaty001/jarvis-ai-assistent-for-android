@@ -13,13 +13,16 @@ from __future__ import annotations
 
 import asyncio
 from typing import Callable, Awaitable, Dict
+from jarvis.core.config import Config
+from jarvis.pipelines.base import AsyncPipeline
 from jarvis.utils.logging import log
 
 
-class ProtocolPipeline:
+class ProtocolPipeline(AsyncPipeline):
     """Orchestrator for automated named security protocols."""
 
-    def __init__(self, device_pipeline=None, telemetry_pipeline=None, audio_fx_pipeline=None) -> None:
+    def __init__(self, config: Config | None = None, device_pipeline=None, telemetry_pipeline=None, audio_fx_pipeline=None) -> None:
+        super().__init__(config)
         self.device = device_pipeline
         self.telemetry = telemetry_pipeline
         self.audio_fx = audio_fx_pipeline

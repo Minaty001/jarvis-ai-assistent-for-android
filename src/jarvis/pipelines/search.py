@@ -11,14 +11,16 @@ import asyncio
 import urllib.parse
 import json
 from typing import Optional, Dict, Any
+from jarvis.core.config import Config
+from jarvis.pipelines.base import AsyncPipeline
 from jarvis.utils.logging import log
 
 
-class SearchPipeline:
+class SearchPipeline(AsyncPipeline):
     """Async web intelligence and weather lookup pipeline."""
 
-    def __init__(self) -> None:
-        pass
+    def __init__(self, config: Config | None = None) -> None:
+        super().__init__(config)
 
     async def get_weather(self, location: str = "auto") -> str:
         """Fetch live weather data for specified location.

@@ -9,6 +9,8 @@ from __future__ import annotations
 import asyncio
 import inspect
 from typing import Callable, Optional, Dict, Any, Union
+from jarvis.core.config import Config
+from jarvis.pipelines.base import AsyncPipeline
 from jarvis.utils.logging import log
 
 
@@ -26,10 +28,11 @@ class ScheduledTask:
         self._async_task: Optional[asyncio.Task] = None
 
 
-class SchedulerPipeline:
+class SchedulerPipeline(AsyncPipeline):
     """Async background task scheduler and countdown manager."""
 
-    def __init__(self, voice_pipeline=None, audio_fx_pipeline=None) -> None:
+    def __init__(self, config: Config | None = None, voice_pipeline=None, audio_fx_pipeline=None) -> None:
+        super().__init__(config)
         self.tasks: dict[str, ScheduledTask] = {}
         self._next_id = 1
         self.voice = voice_pipeline

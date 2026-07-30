@@ -5,14 +5,12 @@ from __future__ import annotations
 
 import asyncio
 import json
-import math
 import time
 from typing import Any, Optional
 
 from flask import Flask, jsonify, render_template, Response, request
 
-from jarvis.ui.brain_renderer import COLORS, BrainRenderer, BrainState, RegionStatus
-from jarvis.core.intent import classify_intent
+from jarvis.ui.brain_renderer import BrainRenderer
 
 app = Flask(__name__)
 
@@ -35,74 +33,25 @@ def set_engine(engine: Any) -> None:
             _engine_loop = None
 
 
-def _build_state() -> BrainState:
-    """Build current brain state from engine or simulated data."""
-    state = BrainState()
-    now = time.time()
+def _run_async(coro: Any) -> Any:
+    """Run an async coroutine, preferring the engine's event loop."""
+    target = _engine_loop if (_engine_loop and _engine_loop.is_running()) else None
+    if target is None:
+        try:
+            target = asyncio.get_running_loop()
+        except RuntimeError:
+            target = None
 
-    eng_state = "idle"
-    if _engine_ref and hasattr(_engine_ref, 'state'):
-        eng_state = str(_engine_ref.state)
+    if target and target.is_running():
+        future = asyncio.run_coroutine_threadsafe(coro, target)
+        return future.result(timeout=30)
 
-    region_active = {
-        "pfc": eng_state in ("processing", "listening", "speaking"),
-        "auditory": eng_state in ("wake_word", "listening"),
-        "wernicke": eng_state in ("processing",),
-        "broca": eng_state in ("speaking",),
-        "motor": eng_state in ("processing",),
-        "hippocampus": True,
-        "occipital": eng_state in ("processing",),
-        "somatosensory": True,
-        "defense": eng_state in ("processing",),
-        "thalamus": eng_state in ("processing",),
-        "cerebellum": True,
-    }
-
-    latencies = {
-        "pfc": 5.0 + (2.0 * math.sin(now * 0.5)),
-        "auditory": 120.0 if region_active["auditory"] else 0.0,
-        "wernicke": 450.0 if region_active["wernicke"] else 0.0,
-        "broca": 800.0 if region_active["broca"] else 0.0,
-        "motor": 50.0 if region_active["motor"] else 0.0,
-        "hippocampus": 3.0,
-        "occipital": 150.0 if region_active["occipital"] else 0.0,
-        "somatosensory": 10.0,
-        "defense": 80.0 if region_active["defense"] else 0.0,
-        "thalamus": 200.0 if region_active["thalamus"] else 0.0,
-        "cerebellum": 5.0,
-    }
-
-    for key, info in COLORS.items():
-        state.regions[key] = RegionStatus(
-            name=info["name"],
-            color_code=info["color"],
-            label=info["label"],
-            active=region_active.get(key, False),
-            latency_ms=latencies.get(key, 0.0),
-            health="active" if region_active.get(key, False) else "standby",
-        )
-
-    pathways = []
-    if region_active["auditory"]:
-        pathways.append(("Auditory", "Wernicke"))
-    if region_active["wernicke"]:
-        pathways.append(("Wernicke", "Broca"))
-        pathways.append(("Wernicke", "Hippocampus"))
-        pathways.append(("Wernicke", "Thalamus"))
-    if region_active["motor"]:
-        pathways.append(("PFC", "Motor"))
-    if region_active["occipital"]:
-        pathways.append(("Occipital", "PFC"))
-    if region_active["defense"]:
-        pathways.append(("PFC", "Defense"))
-    state.active_pathways = pathways
-
-    active_count = sum(1 for v in region_active.values() if v)
-    state.neural_activity_pct = (active_count / 11) * 100
-    state.cortex_health = "OPTIMAL" if active_count <= 8 else "HIGH LOAD"
-    state.total_synapses = len(pathways)
-
-    return state
+    new_loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(new_loop)
+    try:
+        return new_loop.run_until_complete(coro)
+    finally:
+        new_loop.close()
 
 
 @app.route("/")
@@ -114,7 +63,7 @@ def index() -> str:
 @app.route("/api/brain-state")
 def brain_state() -> Response:
     """Return current brain state as JSON."""
-    state = _build_state()
+    state = BrainRenderer.build_state(_engine_ref)
     data = BrainRenderer.build_web_data(state)
     return jsonify(data)
 
@@ -124,7 +73,7 @@ def stream() -> Response:
     """SSE stream of brain state updates."""
     def generate():
         while True:
-            state = _build_state()
+            state = BrainRenderer.build_state(_engine_ref)
             data = BrainRenderer.build_web_data(state)
             yield f"data: {json.dumps(data)}\n\n"
             time.sleep(0.5)
@@ -142,34 +91,14 @@ def handle_command() -> Response:
         return jsonify({"response": "No command received."})
 
     if _engine_ref and hasattr(_engine_ref, 'process'):
-        import asyncio
         try:
-            target_loop = _engine_loop if (_engine_loop and _engine_loop.is_running()) else None
-            if not target_loop:
-                try:
-                    target_loop = asyncio.get_running_loop()
-                except RuntimeError:
-                    target_loop = None
-
-            if target_loop and target_loop.is_running():
-                future = asyncio.run_coroutine_threadsafe(_engine_ref.process(command), target_loop)
-                response = future.result(timeout=30)
-            else:
-                new_loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(new_loop)
-                try:
-                    response = new_loop.run_until_complete(_engine_ref.process(command))
-                finally:
-                    new_loop.close()
-
+            response = _run_async(_engine_ref.process(command))
             _last_response = response
             return jsonify({"response": response})
         except Exception as e:
             return jsonify({"response": f"Error: {e}"})
 
-    # Fallback: classify and respond
-    intent, params = classify_intent(command)
-    return jsonify({"response": f"Intent recognized: {intent} — {params}"})
+    return jsonify({"response": "Engine not initialized."})
 
 
 @app.route("/api/last-response")

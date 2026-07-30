@@ -10,15 +10,17 @@ from __future__ import annotations
 import asyncio
 from typing import Any, Optional
 
-from jarvis.core.config import config as app_config
+from jarvis.core.config import Config, config as app_config
+from jarvis.pipelines.base import AsyncPipeline
 from jarvis.utils.logging import log
 
 
-class ChatPipeline:
+class ChatPipeline(AsyncPipeline):
     """Async multi-provider LLM client for inference and function calling."""
 
-    def __init__(self) -> None:
-        self.timeout = app_config.groq_timeout
+    def __init__(self, config: Config | None = None) -> None:
+        super().__init__(config)
+        self.timeout = self.config.groq_timeout
         self._client: Any = None
         self._openai_api_key = app_config.openai_api_key
 
@@ -149,7 +151,7 @@ class ChatPipeline:
 
         return None
 
-    async def close(self) -> None:
+    async def stop(self) -> None:
         """Close the HTTP client."""
         if self._client:
             try:
@@ -157,3 +159,4 @@ class ChatPipeline:
             except Exception:
                 pass
             self._client = None
+        await super().stop()

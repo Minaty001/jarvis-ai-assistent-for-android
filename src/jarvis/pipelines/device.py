@@ -15,13 +15,16 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
+from jarvis.core.config import Config
+from jarvis.pipelines.base import AsyncPipeline
 from jarvis.utils.logging import log
 
 
-class DevicePipeline:
+class DevicePipeline(AsyncPipeline):
     """Async wrapper around Termux-API and Android commands."""
 
-    def __init__(self) -> None:
+    def __init__(self, config: Config | None = None) -> None:
+        super().__init__(config)
         self._available_bins: dict[str, bool] = {}
 
     async def _run(self, *args: str, input_data: Optional[str] = None) -> str:

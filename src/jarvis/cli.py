@@ -125,31 +125,16 @@ async def run_interactive(
 
     try:
         if text_only or not engine.speech or not engine.speech.model:
-            # Text-only interactive mode
             if not use_tui:
                 print("\nJARVIS text interface online. Type 'exit' to power down.")
-            while True:
-                try:
-                    text = await asyncio.get_running_loop().run_in_executor(
-                        None, lambda: input("\nYou: ")
-                    )
-                    if text.strip().lower() in ("exit", "quit", "bye"):
-                        print("JARVIS: Powering down. It has been a pleasure, sir.")
-                        break
-                    response = await engine.process(text)
-                    print(f"JARVIS: {response}")
-                except (EOFError, KeyboardInterrupt):
-                    print("\nJARVIS: Goodbye, sir.")
-                    break
+            await engine.run_text_mode(prompt="\nYou: ")
         else:
-            # Voice mode with wake word
             if not use_tui:
                 print("JARVIS online. Say the wake word to activate, sir.")
             await engine.run()
     finally:
         if tui_task:
             tui_task.cancel()
-        await engine.shutdown()
 
 
 def main() -> None:

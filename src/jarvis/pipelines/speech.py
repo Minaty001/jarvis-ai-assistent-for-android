@@ -16,7 +16,8 @@ import wave
 from pathlib import Path
 from typing import Any, Callable, Optional
 
-from jarvis.core.config import config as app_config
+from jarvis.core.config import Config, config as app_config
+from jarvis.pipelines.base import AsyncPipeline
 from jarvis.utils.logging import log
 
 try:
@@ -157,10 +158,11 @@ def _transcribe(audio_bytes: bytes, api_key: str) -> str | None:
         return None
 
 
-class SpeechPipeline:
+class SpeechPipeline(AsyncPipeline):
     """Async speech recognition with wake word detection via Groq Whisper API."""
 
-    def __init__(self) -> None:
+    def __init__(self, config: Config | None = None) -> None:
+        super().__init__(config)
         self.model: Any = None  # Kept for engine compatibility checks
         self.recognizer: Any = None
         self.stt_queue: asyncio.Queue[str] = asyncio.Queue()

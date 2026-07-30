@@ -10,14 +10,16 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Optional
 
-from jarvis.core.config import config as app_config
+from jarvis.core.config import Config, config as app_config
+from jarvis.pipelines.base import AsyncPipeline
 
 
-class MemoryPipeline:
+class MemoryPipeline(AsyncPipeline):
     """Persistent storage backed by SQLite via aiosqlite."""
 
-    def __init__(self, db_path: str | None = None) -> None:
-        self.path = db_path or app_config.database_path
+    def __init__(self, db_path: str | None = None, config: Config | None = None) -> None:
+        super().__init__(config)
+        self.path = db_path or self.config.database_path
         self._conn: Any = None
 
     async def initialize(self) -> None:
@@ -328,9 +330,12 @@ class MemoryPipeline:
         await self._conn.commit()
         return cursor.rowcount > 0
 
-    async def close(self) -> None:
+    async def stop(self) -> None:
         """Close database connection."""
-        if not self._conn:
-            return
-        await self._conn.close()
-        self._conn = None
+        if self._conn:
+            try:
+                await self._conn.close()
+            except Exception:
+                pass
+            self._conn = None
+        await super().stop()
